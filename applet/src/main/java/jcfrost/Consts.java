@@ -4,9 +4,12 @@ public class Consts {
     public static final byte CLA_JCFROST = (byte) 0x00;
     public static final byte INS_INITIALIZE = (byte) 0xDF;
 
+    public static final byte INS_TEST_HASH = (byte) 0xE1;
+
     public final static short E_ALREADY_INITIALIZED = (short) 0xee00;
     public final static short E_UNINITIALIZED = (short) 0xee01;
     public final static short E_DEBUG_DISABLED = (short) 0xee02;
+    public final static short E_UNKNOWN_HASH = (short) 0xee03;
 
     public final static short SW_Exception = (short) 0xff01;
     public final static short SW_ArrayIndexOutOfBoundsException = (short) 0xff02;
@@ -19,4 +22,17 @@ public class Consts {
     public final static short SW_PINException_prefix = (short) 0xf300;
     public final static short SW_TransactionException_prefix = (short) 0xf400;
     public final static short SW_CardRuntimeException_prefix = (short) 0xf500;
+
+    // "FROST-secp256k1-SHA256-v11";
+    final static byte[] CONTEXT_STRING = {(byte) 0x46, (byte) 0x52, (byte) 0x4f, (byte) 0x53, (byte) 0x54, (byte) 0x2d, (byte) 0x73, (byte) 0x65, (byte) 0x63, (byte) 0x70, (byte) 0x32, (byte) 0x35, (byte) 0x36, (byte) 0x6b, (byte) 0x31, (byte) 0x2d, (byte) 0x53, (byte) 0x48, (byte) 0x41, (byte) 0x32, (byte) 0x35, (byte) 0x36, (byte) 0x2d, (byte) 0x76, (byte) 0x31, (byte) 0x31};
+    final static byte[] H1_TAG = {(byte) 0x72, (byte) 0x68, (byte) 0x6f};
+    final static byte[] H2_TAG = {(byte) 0x63, (byte) 0x68, (byte) 0x61, (byte) 0x6c};
+    final static byte[] H3_TAG = {(byte) 0x6e, (byte) 0x6f, (byte) 0x6e, (byte) 0x63, (byte) 0x65};
+    final static byte[] H4_TAG = {(byte) 0x6d, (byte) 0x73, (byte) 0x67};
+    final static byte[] H5_TAG = {(byte) 0x63, (byte) 0x6f, (byte) 0x6d};
+    final static byte[] ZPAD = {(byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0, (byte) 0x0};
+    final static byte[] HELPER = {(byte) 0x00, (byte) 0x30};
+    final static byte[] ZERO = {(byte) 0x00};
+    final static byte[] ONE = {(byte) 0x01};
+    final static byte[] TWO = {(byte) 0x02};
 }

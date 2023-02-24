@@ -969,7 +969,8 @@ public class jcmathlib {
         public BigNat pBN;
         public BigNat aBN;
         public BigNat bBN;
-        
+        public BigNat rBN;
+
         public KeyPair disposable_pair;
         public ECPrivateKey disposable_priv;
     
@@ -1015,12 +1016,13 @@ public class jcmathlib {
                 this.r = r_arr;
             }
     
-            // We will not modify values of p/a/b during the lifetime of curve => allocate helper bignats directly from the array
+            // We will not modify values of p/a/b/r during the lifetime of curve => allocate helper bignats directly from the array
             // Additionally, these Bignats will be only read from so Bignat_Helper can be null (saving need to pass as argument to ECCurve)
             this.pBN = new BigNat(this.p, null);
             this.aBN = new BigNat(this.a, null);
             this.bBN = new BigNat(this.b, null);
-    
+            this.rBN = new BigNat(this.r, null);
+
             this.disposable_pair = this.newKeyPair(null);
             this.disposable_priv = (ECPrivateKey) this.disposable_pair.getPrivate();
         }    
