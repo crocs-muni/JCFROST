@@ -5,12 +5,16 @@ import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
 public class JCFROST extends Applet implements MultiSelectable {
+    public final static boolean DEBUG = true;
+
     private ECConfig ecc;
     private ECCurve curve;
     private MessageDigest hasher = MessageDigest.getInstance(MessageDigest.ALG_SHA_256, false);
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
 
     // Long-term variables
+    private byte min_parties;
+    private byte max_parties;
     private byte identifier;
     private BigNat secret;
     private ECPoint groupPublic;
@@ -62,6 +66,9 @@ public class JCFROST extends Applet implements MultiSelectable {
                 case Consts.INS_INITIALIZE:
                     initialize();
                     break;
+                case Consts.INS_SETUP:
+                    setup(apdu);
+                    break;
 
                 // Unit tests
                 case Consts.INS_TEST_HASH:
@@ -110,10 +117,12 @@ public class JCFROST extends Applet implements MultiSelectable {
 
         ecc = new ECConfig((short) 256);
         curve = new ECCurve(false, SecP256k1.p, SecP256k1.a, SecP256k1.b, SecP256k1.G, SecP256k1.r);
+
+        // Long-term variables
+        secret = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
+
         largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         testScalar = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
-        secret = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
-        rng.nextBytes(secret.as_byte_array(), (short) 0, (short) secret.as_byte_array().length);
         numerator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         denominator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         tmp = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
@@ -139,6 +148,27 @@ public class JCFROST extends Applet implements MultiSelectable {
         initialized = true;
     }
 
+    private void setup(APDU apdu) {
+        byte[] apduBuffer = apdu.getBuffer();
+        min_parties = apduBuffer[ISO7816.OFFSET_P1];
+        max_parties = apduBuffer[ISO7816.OFFSET_P2];
+        identifier = apduBuffer[ISO7816.OFFSET_CDATA];
+        Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), secret.as_byte_array(), (short) 0, (short) 32);
+        // TODO decode if card does not support compressed form
+        groupPublic.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), (short) 33);
+        if (DEBUG) {
+            apduBuffer[0] = min_parties;
+            apduBuffer[1] = max_parties;
+            apduBuffer[2] = identifier;
+            Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, apduBuffer, (short) 3, secret.length());
+            encode(groupPublic, apduBuffer, (short) (3 + secret.length()));
+            groupPublic.getW(apduBuffer, (short) (3 + secret.length()));
+            apdu.setOutgoingAndSend((short) 0, (short) (3 + secret.length() + 33));
+        } else {
+            apdu.setOutgoing();
+        }
+    }
+
     private void computeBindingFactors(byte[] msg) {
         h4(msg, (short) 0, (short) msg.length, rhoBuffer, (short) 0);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
@@ -158,10 +188,10 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
-    private void encode(ECPoint point, byte[] output) {
-        point.getW(output, (short) 0);
-        if(output[0] == (byte) 4) {
-            output[0] = (output[32] % 2 == 0 ? (byte) 2 : (byte) 3);
+    private void encode(ECPoint point, byte[] output, short offset) {
+        point.getW(output, offset);
+        if(output[offset] == (byte) 4) {
+            output[offset] = (output[(short) (offset + 32)] % 2 == 0 ? (byte) 2 : (byte) 3);
         }
     }
 
@@ -221,9 +251,9 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private void computeChallenge(byte[] msg) {
         hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
-        encode(groupCommitment, ramArray);
+        encode(groupCommitment, ramArray, (short) 0);
         hasher.update(ramArray, (short) 0, (short) 33);
-        encode(groupPublic, ramArray);
+        encode(groupPublic, ramArray, (short) 0);
         hasher.update(ramArray, (short) 0, (short) 33);
         hasher.update(msg, (short) 0, (short) msg.length);
         hash_to_field_internal(Consts.H2_TAG, challenge);

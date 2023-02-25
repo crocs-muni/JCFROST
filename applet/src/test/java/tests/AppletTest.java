@@ -1,7 +1,9 @@
 package tests;
 
+import cz.muni.fi.crocs.rcard.client.Util;
 import jcfrost.Consts;
 import cz.muni.fi.crocs.rcard.client.CardType;
+import jcfrost.JCFROST;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
@@ -14,6 +16,19 @@ public class AppletTest extends BaseTest {
         setCardType(CardType.JCARDSIMLOCAL);
         setSimulateStateful(true);
         connect().transmit(new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_INITIALIZE, 0, 0));
+    }
+
+    @Test
+    public void testSetup() throws Exception {
+        byte[] secret = Hex.decode("08f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1ea2b01f4254c");
+        byte[] groupKey = Hex.decode("02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f64663b0eae87d87b4f");
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_SETUP, 2, 3, Util.concat(new byte[]{1}, Util.concat(secret, groupKey)));
+        final ResponseAPDU responseAPDU = connect().transmit(cmd);
+        Assert.assertNotNull(responseAPDU);
+        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        if(JCFROST.DEBUG) {
+            Assert.assertArrayEquals(responseAPDU.getData(), Hex.decode("02030108f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1ea2b01f4254c02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f64663b0eae87d87b4f"));
+        }
     }
 
     @Test
