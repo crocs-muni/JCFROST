@@ -18,7 +18,15 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private BigNat numerator, denominator, tmp;
     private BigNat hidingNonce, bindingNonce;
+    private ECPoint groupPublic;
     private ECPoint hidingPoint, bindingPoint;
+
+    // Commitments
+    private byte[][] identifiers;
+    private byte[][] hidingCommitments;
+    private byte[][] bindingCommitments;
+    private BigNat[] bindingFactors;
+
     private boolean initialized = false;
 
     public static void install(byte[] bArray, short bOffset, byte bLength) {
@@ -106,8 +114,39 @@ public class JCFROST extends Applet implements MultiSelectable {
         bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         hidingPoint = new ECPoint(curve, ecc.rm);
         bindingPoint = new ECPoint(curve, ecc.rm);
+        groupPublic = new ECPoint(curve, ecc.rm);
+
+        identifiers = new byte[32][5];
+        hidingCommitments = new byte[65][5];
+        bindingCommitments = new byte[65][5];
+        bindingFactors = new BigNat[5];
+        for(short i = 0; i < (short) bindingFactors.length; ++i) {
+            bindingFactors[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
+        }
 
         initialized = true;
+    }
+
+    private void computeBindingFactors(byte[] msg) {
+        byte[] msgHash = new byte[32];
+        h4(msg, (short) 0, (short) msg.length, msgHash, (short) 0);
+        byte[] encodedCommitmentHash = new byte[32];
+        hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
+        hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
+        for(short j = 0; j < (short) bindingFactors.length; ++j) {
+            hasher.update(identifiers[j], (short) 0, (short) identifiers[j].length);
+            hasher.update(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
+            hasher.update(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
+        }
+        hasher.doFinal(new byte[0], (short) 0, (short) 0, encodedCommitmentHash, (short) 0);
+
+        byte[] rho_input = new byte[(short) (3 * 32)];
+        Util.arrayCopyNonAtomic(msgHash, (short) 0, rho_input, (short) 0, (short) msgHash.length);
+        Util.arrayCopyNonAtomic(encodedCommitmentHash, (short) 0, rho_input, (short) 32, (short) encodedCommitmentHash.length);
+        for(short j = 0; j < (short) bindingFactors.length; ++j) {
+            Util.arrayCopyNonAtomic(identifiers[j], (short) 0, rho_input, (short) 64, (short) identifiers[j].length);
+            h1(rho_input, (short) 0, (short) rho_input.length, bindingFactors[j]);
+        }
     }
 
     private void commit() {
@@ -117,6 +156,10 @@ public class JCFROST extends Applet implements MultiSelectable {
         nonceGenerate(bindingNonce);
         hidingPoint.multiplication(hidingNonce);
         bindingPoint.multiplication(bindingNonce);
+    }
+
+    private void sign(byte[] msg) {
+        computeBindingFactors(msg);
     }
 
     private void deriveInterpolatingValue(short i, BigNat[] L, BigNat result) {
