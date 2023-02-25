@@ -26,15 +26,6 @@ public class AppletTest extends BaseTest {
     }
 
     @Test
-    public void testH2() throws Exception {
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_TEST_HASH, 2, 0);
-        final ResponseAPDU responseAPDU = connect().transmit(cmd);
-        Assert.assertNotNull(responseAPDU);
-        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        Assert.assertArrayEquals(responseAPDU.getData(), Hex.decode("f69cb6842a0ae565b9d1bfb60445e7debfe0ea0bd0ba27824e1cc13b1f6cbeb2"));
-    }
-
-    @Test
     public void testH3() throws Exception {
         final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_TEST_HASH, 3, 0);
         final ResponseAPDU responseAPDU = connect().transmit(cmd);
@@ -50,14 +41,5 @@ public class AppletTest extends BaseTest {
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertArrayEquals(responseAPDU.getData(), Hex.decode("6b930d6492cad96927a6df946246df8cf9c9f9e4537436526b40a08d85dc27aa"));
-    }
-
-    @Test
-    public void testH5() throws Exception {
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_TEST_HASH, 5, 0);
-        final ResponseAPDU responseAPDU = connect().transmit(cmd);
-        Assert.assertNotNull(responseAPDU);
-        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        Assert.assertArrayEquals(responseAPDU.getData(), Hex.decode("551199b9f30a0e2df02b3d373f9158709e859c86d2b2099cc7a043447f1aa6cc"));
     }
 }

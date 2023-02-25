@@ -8,29 +8,29 @@ public class JCFROST extends Applet implements MultiSelectable {
     private ECConfig ecc;
     private ECCurve curve;
     private MessageDigest hasher = MessageDigest.getInstance(MessageDigest.ALG_SHA_256, false);
-    private BigNat largeScalar;
-    private BigNat testScalar;
-    private byte[] ramArray = JCSystem.makeTransientByteArray((short) (3 * 32 + 1), JCSystem.CLEAR_ON_RESET);
-    private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
+
+    // Long-term variables
+    private byte identifier;
     private BigNat secret;
-
-    private BigNat numerator, denominator, tmp;
-    private BigNat hidingNonce, bindingNonce;
     private ECPoint groupPublic;
-    private ECPoint groupCommitment;
-    private ECPoint tmpPoint;
-    private ECPoint tmpPoint2;
-    private ECPoint hidingPoint, bindingPoint;
 
-    // Commitments
-    private BigNat[] identifiers;
+    // Short-term variables
+    private short index;
+    private BigNat hidingNonce, bindingNonce;
+    private ECPoint hidingPoint, bindingPoint;
+    private byte[] identifiers;
     private byte[][] hidingCommitments;
     private byte[][] bindingCommitments;
+
+    // Computation variables
     private BigNat[] bindingFactors;
-    private BigNat lambda;
-    private BigNat challenge;
-    private short index;
+    private BigNat largeScalar, testScalar, numerator, denominator, tmp, lambda, challenge;
+    private ECPoint groupCommitment, tmpPoint, tmpPoint2;
+    private byte[] ramArray = JCSystem.makeTransientByteArray((short) (3 * 32 + 1), JCSystem.CLEAR_ON_RESET);
+    private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
+    private BigNat identifierBuffer = new BigNat(JCSystem.makeTransientByteArray((short) 32, JCSystem.CLEAR_ON_RESET), null);
+    private byte[] rhoBuffer = JCSystem.makeTransientByteArray((short) (3 * 32), JCSystem.CLEAR_ON_RESET);
 
     private boolean initialized = false;
 
@@ -127,13 +127,12 @@ public class JCFROST extends Applet implements MultiSelectable {
         tmpPoint = new ECPoint(curve, ecc.rm);
         tmpPoint2 = new ECPoint(curve, ecc.rm);
 
-        identifiers = new BigNat[5];
-        hidingCommitments = new byte[65][5];
-        bindingCommitments = new byte[65][5];
-        bindingFactors = new BigNat[5];
+        identifiers = new byte[Consts.MAX_PARTIES];
+        hidingCommitments = new byte[65][Consts.MAX_PARTIES];
+        bindingCommitments = new byte[65][Consts.MAX_PARTIES];
+        bindingFactors = new BigNat[Consts.MAX_PARTIES];
         lambda = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
-        for(short i = 0; i < (short) bindingFactors.length; ++i) {
-            identifiers[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
+        for(short i = 0; i < (short) Consts.MAX_PARTIES; ++i) {
             bindingFactors[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         }
 
@@ -141,33 +140,28 @@ public class JCFROST extends Applet implements MultiSelectable {
     }
 
     private void computeBindingFactors(byte[] msg) {
-        byte[] msgHash = new byte[32];
-        h4(msg, (short) 0, (short) msg.length, msgHash, (short) 0);
-        byte[] encodedCommitmentHash = new byte[32];
+        h4(msg, (short) 0, (short) msg.length, rhoBuffer, (short) 0);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
         for(short j = 0; j < (short) bindingFactors.length; ++j) {
-            hasher.update(identifiers[j].as_byte_array(), (short) 0, (short) identifiers[j].as_byte_array().length);
+            identifierBuffer.as_byte_array()[31] = identifiers[j]; // TODO check whether the rest of the array is all zeros
+            hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
             hasher.update(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
             hasher.update(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
         }
-        hasher.doFinal(new byte[0], (short) 0, (short) 0, encodedCommitmentHash, (short) 0);
+        hasher.doFinal(null, (short) 0, (short) 0, rhoBuffer, (short) 32);
 
-        byte[] rho_input = new byte[(short) (3 * 32)];
-        Util.arrayCopyNonAtomic(msgHash, (short) 0, rho_input, (short) 0, (short) msgHash.length);
-        Util.arrayCopyNonAtomic(encodedCommitmentHash, (short) 0, rho_input, (short) 32, (short) encodedCommitmentHash.length);
+        Util.arrayFillNonAtomic(rhoBuffer, (short) 64, (short) 31, (byte) 0);
         for(short j = 0; j < (short) bindingFactors.length; ++j) {
-            Util.arrayCopyNonAtomic(identifiers[j].as_byte_array(), (short) 0, rho_input, (short) 64, (short) identifiers[j].as_byte_array().length);
-            h1(rho_input, (short) 0, (short) rho_input.length, bindingFactors[j]);
+            rhoBuffer[95] = identifiers[j];
+            h1(rhoBuffer, (short) 0, (short) rhoBuffer.length, bindingFactors[j]);
         }
     }
 
-    private void encode(ECPoint point, byte[] output, short outputOffset) {
-        byte[] buffer = new byte[65];
-        point.getW(buffer, (short) 0);
-        Util.arrayCopyNonAtomic(buffer, (short) 0, output, outputOffset, (short) 33);
+    private void encode(ECPoint point, byte[] output) {
+        point.getW(output, (short) 0);
         if(output[0] == (byte) 4) {
-            output[0] = (point.isYEven() ? (byte) 2 : (byte) 3);
+            output[0] = (output[32] % 2 == 0 ? (byte) 2 : (byte) 3);
         }
     }
 
@@ -177,9 +171,9 @@ public class JCFROST extends Applet implements MultiSelectable {
         tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
         groupCommitment.copy(tmpPoint);
         for(int j = 1; j < (short) bindingFactors.length; ++j) {
-            tmpPoint.setW(bindingCommitments[0], (short) 0, (short) bindingCommitments[0].length);
-            tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
-            tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
+            tmpPoint.setW(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
+            tmpPoint2.setW(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
+            tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }
     }
@@ -214,9 +208,11 @@ public class JCFROST extends Applet implements MultiSelectable {
             if(j == index) {
                 continue;
             }
-            numerator.mod_mult(numerator, identifiers[j], curve.rBN);
-            tmp.clone(identifiers[j]);
-            tmp.mod_sub(identifiers[index], curve.rBN);
+            identifierBuffer.as_byte_array()[31] = identifiers[j];
+            numerator.mod_mult(numerator, identifierBuffer, curve.rBN);
+            tmp.clone(identifierBuffer);
+            identifierBuffer.as_byte_array()[31] = identifiers[index];
+            tmp.mod_sub(identifierBuffer, curve.rBN);
             denominator.mod_mult(denominator, tmp, curve.rBN);
         }
         denominator.mod_inv(curve.rBN);
@@ -224,11 +220,13 @@ public class JCFROST extends Applet implements MultiSelectable {
     }
 
     private void computeChallenge(byte[] msg) {
-        byte[] challengeInput = new byte[(short) (33 + 33 + 32)];
-        encode(groupCommitment, challengeInput, (short) 0);
-        encode(groupPublic, challengeInput, (short) 33);
-        Util.arrayCopyNonAtomic(msg, (short) 0, challengeInput, (short) 66, (short) 32); // TODO allow arbitrarily long msg
-        h2(challengeInput, (short) 0, (short) challengeInput.length, challenge);
+        hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
+        encode(groupCommitment, ramArray);
+        hasher.update(ramArray, (short) 0, (short) 33);
+        encode(groupPublic, ramArray);
+        hasher.update(ramArray, (short) 0, (short) 33);
+        hasher.update(msg, (short) 0, (short) msg.length);
+        hash_to_field_internal(Consts.H2_TAG, challenge);
     }
 
     private void nonceGenerate(BigNat outputNonce) {
@@ -245,19 +243,12 @@ public class JCFROST extends Applet implements MultiSelectable {
                 h1(apdu.getBuffer(), ISO7816.OFFSET_CDATA, p2, testScalar);
                 testScalar.copy_to_buffer(apdu.getBuffer(), (short) 0);
                 break;
-            case 2:
-                h2(apdu.getBuffer(), ISO7816.OFFSET_CDATA, p2, testScalar);
-                testScalar.copy_to_buffer(apdu.getBuffer(), (short) 0);
-                break;
             case 3:
                 h3(apdu.getBuffer(), ISO7816.OFFSET_CDATA, p2, testScalar);
                 testScalar.copy_to_buffer(apdu.getBuffer(), (short) 0);
                 break;
             case 4:
                 h4(apdu.getBuffer(), ISO7816.OFFSET_CDATA, p2, apdu.getBuffer(), (short) 0);
-                break;
-            case 5:
-                h5(apdu.getBuffer(), ISO7816.OFFSET_CDATA, p2, apdu.getBuffer(), (short) 0);
                 break;
             default:
                 ISOException.throwIt(Consts.E_UNKNOWN_HASH);
@@ -267,10 +258,6 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private void h1(byte[] msg, short msgOffset, short msgLen, BigNat outputScalar) {
         hash_to_field(msg, msgOffset, msgLen, Consts.H1_TAG, outputScalar);
-    }
-
-    private void h2(byte[] msg, short msgOffset, short msgLen, BigNat outputScalar) {
-        hash_to_field(msg, msgOffset, msgLen, Consts.H2_TAG, outputScalar);
     }
 
     private void h3(byte[] msg, short msgOffset, short msgLen, BigNat outputScalar) {
@@ -283,22 +270,19 @@ public class JCFROST extends Applet implements MultiSelectable {
         hasher.doFinal(msg, msgOffset, msgLen, output, outputOffset);
     }
 
-    private void h5(byte[] msg, short msgOffset, short msgLen, byte[] output, short outputOffset) {
-        hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
-        hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
-        hasher.doFinal(msg, msgOffset, msgLen, output, outputOffset);
-    }
-
     // hash_to_field https://datatracker.ietf.org/doc/draft-irtf-cfrg-hash-to-curve/
     private void hash_to_field(byte[] msg, short msgOffset, short msgLen, byte[] tag, BigNat outputScalar) {
+        hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
+        hasher.update(msg, msgOffset, msgLen);
+        hash_to_field_internal(tag, outputScalar);
+    }
+
+    private void hash_to_field_internal(byte[] tag, BigNat outputScalar) {
         short L = 48;
         short BLOCK = 32;
         // ramArray = b0 (BLOCK) || b1 (BLOCK) || b2 (BLOCK) || CONTEXT_STRING_LEN (BYTE)
 
         ramArray[(3 * BLOCK)] = (byte) (Consts.CONTEXT_STRING.length + tag.length);
-
-        hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
-        hasher.update(msg, msgOffset, msgLen);
         hasher.update(Consts.HELPER, (short) 0, (short) Consts.HELPER.length);
         hasher.update(Consts.ZERO, (short) 0, (short) Consts.ZERO.length);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
