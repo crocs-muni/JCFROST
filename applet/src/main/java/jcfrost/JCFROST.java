@@ -24,11 +24,12 @@ public class JCFROST extends Applet implements MultiSelectable {
     private ECPoint hidingPoint, bindingPoint;
 
     // Commitments
-    private byte[][] identifiers;
+    private BigNat[] identifiers;
     private byte[][] hidingCommitments;
     private byte[][] bindingCommitments;
     private BigNat[] bindingFactors;
     private BigNat lambda;
+    private short index;
 
     private boolean initialized = false;
 
@@ -123,12 +124,13 @@ public class JCFROST extends Applet implements MultiSelectable {
         tmpPoint = new ECPoint(curve, ecc.rm);
         tmpPoint2 = new ECPoint(curve, ecc.rm);
 
-        identifiers = new byte[32][5];
+        identifiers = new BigNat[5];
         hidingCommitments = new byte[65][5];
         bindingCommitments = new byte[65][5];
         bindingFactors = new BigNat[5];
         lambda = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         for(short i = 0; i < (short) bindingFactors.length; ++i) {
+            identifiers[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
             bindingFactors[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         }
 
@@ -142,7 +144,7 @@ public class JCFROST extends Applet implements MultiSelectable {
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
         for(short j = 0; j < (short) bindingFactors.length; ++j) {
-            hasher.update(identifiers[j], (short) 0, (short) identifiers[j].length);
+            hasher.update(identifiers[j].as_byte_array(), (short) 0, (short) identifiers[j].as_byte_array().length);
             hasher.update(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
             hasher.update(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
         }
@@ -152,7 +154,7 @@ public class JCFROST extends Applet implements MultiSelectable {
         Util.arrayCopyNonAtomic(msgHash, (short) 0, rho_input, (short) 0, (short) msgHash.length);
         Util.arrayCopyNonAtomic(encodedCommitmentHash, (short) 0, rho_input, (short) 32, (short) encodedCommitmentHash.length);
         for(short j = 0; j < (short) bindingFactors.length; ++j) {
-            Util.arrayCopyNonAtomic(identifiers[j], (short) 0, rho_input, (short) 64, (short) identifiers[j].length);
+            Util.arrayCopyNonAtomic(identifiers[j].as_byte_array(), (short) 0, rho_input, (short) 64, (short) identifiers[j].as_byte_array().length);
             h1(rho_input, (short) 0, (short) rho_input.length, bindingFactors[j]);
         }
     }
@@ -182,26 +184,25 @@ public class JCFROST extends Applet implements MultiSelectable {
     private void sign(byte[] msg) {
         computeBindingFactors(msg);
         computeGroupCommitment();
+        computeLambda();
     }
 
-    private void deriveInterpolatingValue(short i, BigNat[] L, BigNat result) {
-        // TODO L has to contain unique values - check when building L
-        if(i < 0 || i >= (short) L.length) {
-            ISOException.throwIt(Consts.E_OUT_OF_RANGE);
-        }
+    private void computeLambda() {
+        // TODO identifiers have to contain unique values - check when building identifiers
+        // TODO index has to correspond to identifier of this device - verify
         numerator.one();
         denominator.one();
-        for(short j = 0; j < (short) L.length; ++j) {
-            if(j == i) {
+        for(short j = 0; j < (short) identifiers.length; ++j) {
+            if(j == index) {
                 continue;
             }
-            numerator.mod_mult(numerator, L[j], curve.rBN);
-            tmp.clone(L[j]);
-            tmp.mod_sub(L[i], curve.rBN);
+            numerator.mod_mult(numerator, identifiers[j], curve.rBN);
+            tmp.clone(identifiers[j]);
+            tmp.mod_sub(identifiers[index], curve.rBN);
             denominator.mod_mult(denominator, tmp, curve.rBN);
         }
         denominator.mod_inv(curve.rBN);
-        result.mod_mult(numerator, denominator, curve.rBN);
+        lambda.mod_mult(numerator, denominator, curve.rBN);
     }
 
     private void nonceGenerate(BigNat outputNonce) {
