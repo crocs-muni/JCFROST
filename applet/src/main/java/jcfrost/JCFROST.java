@@ -13,7 +13,7 @@ public class JCFROST extends Applet implements MultiSelectable {
     private byte[] ramArray = JCSystem.makeTransientByteArray((short) (3 * 32 + 1), JCSystem.CLEAR_ON_RESET);
     private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
-    private byte[] secret = new byte[32];
+    private BigNat secret;
 
     private BigNat numerator, denominator, tmp;
     private BigNat hidingNonce, bindingNonce;
@@ -29,6 +29,7 @@ public class JCFROST extends Applet implements MultiSelectable {
     private byte[][] bindingCommitments;
     private BigNat[] bindingFactors;
     private BigNat lambda;
+    private BigNat challenge;
     private short index;
 
     private boolean initialized = false;
@@ -111,12 +112,14 @@ public class JCFROST extends Applet implements MultiSelectable {
         curve = new ECCurve(false, SecP256k1.p, SecP256k1.a, SecP256k1.b, SecP256k1.G, SecP256k1.r);
         largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         testScalar = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
-        rng.nextBytes(secret, (short) 0, (short) secret.length);
+        secret = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        rng.nextBytes(secret.as_byte_array(), (short) 0, (short) secret.as_byte_array().length);
         numerator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         denominator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         tmp = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         hidingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        challenge = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         hidingPoint = new ECPoint(curve, ecc.rm);
         bindingPoint = new ECPoint(curve, ecc.rm);
         groupPublic = new ECPoint(curve, ecc.rm);
@@ -159,6 +162,15 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
+    private void encode(ECPoint point, byte[] output, short outputOffset) {
+        byte[] buffer = new byte[65];
+        point.getW(buffer, (short) 0);
+        Util.arrayCopyNonAtomic(buffer, (short) 0, output, outputOffset, (short) 33);
+        if(output[0] == (byte) 4) {
+            output[0] = (point.isYEven() ? (byte) 2 : (byte) 3);
+        }
+    }
+
     private void computeGroupCommitment() {
         tmpPoint.setW(bindingCommitments[0], (short) 0, (short) bindingCommitments[0].length);
         tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
@@ -185,6 +197,12 @@ public class JCFROST extends Applet implements MultiSelectable {
         computeBindingFactors(msg);
         computeGroupCommitment();
         computeLambda();
+        computeChallenge(msg);
+        challenge.mod_mult(challenge, lambda, curve.rBN);
+        challenge.mod_mult(challenge, secret, curve.rBN);
+        tmp.mod_mult(bindingNonce, bindingFactors[index], curve.rBN);
+        tmp.mod_add(hidingNonce, curve.rBN);
+        tmp.mod_add(challenge, curve.rBN); // result
     }
 
     private void computeLambda() {
@@ -205,9 +223,17 @@ public class JCFROST extends Applet implements MultiSelectable {
         lambda.mod_mult(numerator, denominator, curve.rBN);
     }
 
+    private void computeChallenge(byte[] msg) {
+        byte[] challengeInput = new byte[(short) (33 + 33 + 32)];
+        encode(groupCommitment, challengeInput, (short) 0);
+        encode(groupPublic, challengeInput, (short) 33);
+        Util.arrayCopyNonAtomic(msg, (short) 0, challengeInput, (short) 66, (short) 32); // TODO allow arbitrarily long msg
+        h2(challengeInput, (short) 0, (short) challengeInput.length, challenge);
+    }
+
     private void nonceGenerate(BigNat outputNonce) {
         rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
-        Util.arrayCopyNonAtomic(secret, (short) 0, nonceBuffer, (short) 32, (short) 32); // TODO can be preloaded in RAM
+        Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, nonceBuffer, (short) 32, (short) 32); // TODO can be preloaded in RAM
         h3(nonceBuffer, (short) 0, (short) nonceBuffer.length, outputNonce);
     }
 
