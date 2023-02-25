@@ -10,6 +10,7 @@ public class Consts {
     public final static short E_UNINITIALIZED = (short) 0xee01;
     public final static short E_DEBUG_DISABLED = (short) 0xee02;
     public final static short E_UNKNOWN_HASH = (short) 0xee03;
+    public final static short E_OUT_OF_RANGE = (short) 0xee04;
 
     public final static short SW_Exception = (short) 0xff01;
     public final static short SW_ArrayIndexOutOfBoundsException = (short) 0xff02;

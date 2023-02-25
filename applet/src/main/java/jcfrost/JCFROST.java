@@ -15,6 +15,7 @@ public class JCFROST extends Applet implements MultiSelectable {
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
     private byte[] secret = new byte[32];
 
+    private BigNat numerator, denominator, tmp;
     private boolean initialized = false;
 
     public static void install(byte[] bArray, short bOffset, byte bLength) {
@@ -96,10 +97,31 @@ public class JCFROST extends Applet implements MultiSelectable {
         largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         testScalar = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         rng.nextBytes(secret, (short) 0, (short) secret.length);
+        numerator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        denominator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
 
         initialized = true;
     }
 
+    private void deriveInterpolatingValue(short i, BigNat[] L, BigNat result) {
+        // TODO L has to contain unique values - check when building L
+        if(i < 0 || i >= (short) L.length) {
+            ISOException.throwIt(Consts.E_OUT_OF_RANGE);
+        }
+        numerator.one();
+        denominator.one();
+        for(short j = 0; j < (short) L.length; ++j) {
+            if(j == i) {
+                continue;
+            }
+            numerator.mod_mult(numerator, L[j], curve.rBN);
+            tmp.clone(L[j]);
+            tmp.mod_sub(L[i], curve.rBN);
+            denominator.mod_mult(denominator, tmp, curve.rBN);
+        }
+        denominator.mod_inv(curve.rBN);
+        result.mod_mult(numerator, denominator, curve.rBN);
+    }
 
     private void nonceGenerate(BigNat outputNonce) {
         rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
