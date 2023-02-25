@@ -14,11 +14,13 @@ public class JCFROST extends Applet implements MultiSelectable {
     private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
     private byte[] secret = new byte[32];
-    private short index = 0;
 
     private BigNat numerator, denominator, tmp;
     private BigNat hidingNonce, bindingNonce;
     private ECPoint groupPublic;
+    private ECPoint groupCommitment;
+    private ECPoint tmpPoint;
+    private ECPoint tmpPoint2;
     private ECPoint hidingPoint, bindingPoint;
 
     // Commitments
@@ -26,6 +28,7 @@ public class JCFROST extends Applet implements MultiSelectable {
     private byte[][] hidingCommitments;
     private byte[][] bindingCommitments;
     private BigNat[] bindingFactors;
+    private BigNat lambda;
 
     private boolean initialized = false;
 
@@ -110,16 +113,21 @@ public class JCFROST extends Applet implements MultiSelectable {
         rng.nextBytes(secret, (short) 0, (short) secret.length);
         numerator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         denominator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        tmp = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         hidingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         hidingPoint = new ECPoint(curve, ecc.rm);
         bindingPoint = new ECPoint(curve, ecc.rm);
         groupPublic = new ECPoint(curve, ecc.rm);
+        groupCommitment = new ECPoint(curve, ecc.rm);
+        tmpPoint = new ECPoint(curve, ecc.rm);
+        tmpPoint2 = new ECPoint(curve, ecc.rm);
 
         identifiers = new byte[32][5];
         hidingCommitments = new byte[65][5];
         bindingCommitments = new byte[65][5];
         bindingFactors = new BigNat[5];
+        lambda = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         for(short i = 0; i < (short) bindingFactors.length; ++i) {
             bindingFactors[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         }
@@ -149,6 +157,19 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
+    private void computeGroupCommitment() {
+        tmpPoint.setW(bindingCommitments[0], (short) 0, (short) bindingCommitments[0].length);
+        tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
+        tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
+        groupCommitment.copy(tmpPoint);
+        for(int j = 1; j < (short) bindingFactors.length; ++j) {
+            tmpPoint.setW(bindingCommitments[0], (short) 0, (short) bindingCommitments[0].length);
+            tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
+            tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
+            groupCommitment.add(tmpPoint);
+        }
+    }
+
     private void commit() {
         hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
         hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
@@ -160,6 +181,7 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private void sign(byte[] msg) {
         computeBindingFactors(msg);
+        computeGroupCommitment();
     }
 
     private void deriveInterpolatingValue(short i, BigNat[] L, BigNat result) {
