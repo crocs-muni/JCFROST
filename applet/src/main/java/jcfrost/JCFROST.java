@@ -11,6 +11,9 @@ public class JCFROST extends Applet implements MultiSelectable {
     private BigNat largeScalar;
     private BigNat testScalar;
     private byte[] ramArray = JCSystem.makeTransientByteArray((short) (3 * 32 + 1), JCSystem.CLEAR_ON_RESET);
+    private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
+    private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
+    private byte[] secret = new byte[32];
 
     private boolean initialized = false;
 
@@ -92,8 +95,16 @@ public class JCFROST extends Applet implements MultiSelectable {
         curve = new ECCurve(false, SecP256k1.p, SecP256k1.a, SecP256k1.b, SecP256k1.G, SecP256k1.r);
         largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         testScalar = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        rng.nextBytes(secret, (short) 0, (short) secret.length);
 
         initialized = true;
+    }
+
+
+    private void nonceGenerate(BigNat outputNonce) {
+        rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
+        Util.arrayCopyNonAtomic(secret, (short) 0, nonceBuffer, (short) 32, (short) 32); // TODO can be preloaded in RAM
+        h3(nonceBuffer, (short) 0, (short) nonceBuffer.length, outputNonce);
     }
 
     private void testHash(APDU apdu) {
