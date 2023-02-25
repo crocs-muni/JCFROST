@@ -14,8 +14,11 @@ public class JCFROST extends Applet implements MultiSelectable {
     private byte[] nonceBuffer = JCSystem.makeTransientByteArray((short) (2 * 32), JCSystem.CLEAR_ON_RESET);
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
     private byte[] secret = new byte[32];
+    private short index = 0;
 
     private BigNat numerator, denominator, tmp;
+    private BigNat hidingNonce, bindingNonce;
+    private ECPoint hidingPoint, bindingPoint;
     private boolean initialized = false;
 
     public static void install(byte[] bArray, short bOffset, byte bLength) {
@@ -99,8 +102,21 @@ public class JCFROST extends Applet implements MultiSelectable {
         rng.nextBytes(secret, (short) 0, (short) secret.length);
         numerator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
         denominator = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        hidingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, ecc.rm);
+        hidingPoint = new ECPoint(curve, ecc.rm);
+        bindingPoint = new ECPoint(curve, ecc.rm);
 
         initialized = true;
+    }
+
+    private void commit() {
+        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
+        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
+        nonceGenerate(hidingNonce);
+        nonceGenerate(bindingNonce);
+        hidingPoint.multiplication(hidingNonce);
+        bindingPoint.multiplication(bindingNonce);
     }
 
     private void deriveInterpolatingValue(short i, BigNat[] L, BigNat result) {
