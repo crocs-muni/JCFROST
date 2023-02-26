@@ -37,6 +37,11 @@ public class AppletTest extends BaseTest {
         return cm.transmit(cmd);
     }
 
+    public ResponseAPDU sign(CardManager cm, byte[] msg) throws CardException {
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_SIGN, msg.length, 0, msg);
+        return cm.transmit(cmd);
+    }
+
     @Test
     public void testSetup() throws Exception {
         CardManager cm = connect();
@@ -70,6 +75,19 @@ public class AppletTest extends BaseTest {
         responseAPDU = commitment(cm, 3, Util.concat(Hex.decode("030278e6e6055fb963b40e0c3c37099f803f3f38930fc89092517f8ce1b47e8d6b"), Hex.decode("028eb6d238c6c0fc6216906706ad0ff9943c6c1d6079cdf74f674481ebb2485db3")));
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+    }
+
+    @Test
+    public void testSign() throws Exception {
+        CardManager cm = connect();
+        setup(cm);
+        byte[] data = commit(cm).getData();
+        commitment(cm, 1, data);
+        commitment(cm, 3, Util.concat(Hex.decode("030278e6e6055fb963b40e0c3c37099f803f3f38930fc89092517f8ce1b47e8d6b"), Hex.decode("028eb6d238c6c0fc6216906706ad0ff9943c6c1d6079cdf74f674481ebb2485db3")));
+        ResponseAPDU responseAPDU = sign(cm, Hex.decode("74657374"));
+        Assert.assertNotNull(responseAPDU);
+        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        Assert.assertEquals(responseAPDU.getData().length, 32);
     }
 
     @Test

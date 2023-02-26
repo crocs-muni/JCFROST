@@ -6,6 +6,7 @@ public class Consts {
     public static final byte INS_SETUP = (byte) 0x01;
     public static final byte INS_COMMIT = (byte) 0x02;
     public static final byte INS_COMMITMENT = (byte) 0x03;
+    public static final byte INS_SIGN = (byte) 0x04;
 
     public static final byte INS_TEST_HASH = (byte) 0xE1;
 
@@ -16,6 +17,8 @@ public class Consts {
     public final static short E_TOO_MANY_PARTIES = (short) 0xee04;
     public final static short E_TOO_MANY_COMMITMENTS = (short) 0xee05;
     public final static short E_IDENTIFIER_ORDERING = (short) 0xee06;
+    public final static short E_NOT_ENOUGH_COMMITMENTS = (short) 0xee07;
+    public final static short E_IDENTIFIER_NOT_INCLUDED = (short) 0xee08;
 
     public final static short SW_Exception = (short) 0xff01;
     public final static short SW_ArrayIndexOutOfBoundsException = (short) 0xff02;

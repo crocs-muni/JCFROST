@@ -76,6 +76,9 @@ public class JCFROST extends Applet implements MultiSelectable {
                 case Consts.INS_COMMITMENT:
                     commitment(apdu);
                     break;
+                case Consts.INS_SIGN:
+                    sign(apdu);
+                    break;
 
                 // Unit tests
                 case Consts.INS_TEST_HASH:
@@ -212,11 +215,11 @@ public class JCFROST extends Applet implements MultiSelectable {
         ++storedCommitments;
     }
 
-    private void computeBindingFactors(byte[] msg) {
-        h4(msg, (short) 0, (short) msg.length, rhoBuffer, (short) 0);
+    private void computeBindingFactors(byte[] msg, short msgOffset, short msgLen) {
+        h4(msg, msgOffset, msgLen, rhoBuffer, (short) 0);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
-        for(short j = 0; j < (short) bindingFactors.length; ++j) {
+        for(short j = 0; j < storedCommitments; ++j) {
             identifierBuffer.as_byte_array()[31] = identifiers[j]; // TODO check whether the rest of the array is all zeros
             hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
             hasher.update(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
@@ -225,7 +228,7 @@ public class JCFROST extends Applet implements MultiSelectable {
         hasher.doFinal(null, (short) 0, (short) 0, rhoBuffer, (short) 32);
 
         Util.arrayFillNonAtomic(rhoBuffer, (short) 64, (short) 31, (byte) 0);
-        for(short j = 0; j < (short) bindingFactors.length; ++j) {
+        for(short j = 0; j < storedCommitments; ++j) {
             rhoBuffer[95] = identifiers[j];
             h1(rhoBuffer, (short) 0, (short) rhoBuffer.length, bindingFactors[j]);
         }
@@ -243,7 +246,7 @@ public class JCFROST extends Applet implements MultiSelectable {
         tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
         tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
         groupCommitment.copy(tmpPoint);
-        for(int j = 1; j < (short) bindingFactors.length; ++j) {
+        for(int j = 1; j < storedCommitments; ++j) {
             tmpPoint.setW(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
             tmpPoint2.setW(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
@@ -251,16 +254,28 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
-    private void sign(byte[] msg) {
-        computeBindingFactors(msg);
+    private void sign(APDU apdu) {
+        if(storedCommitments < minParties) {
+            // TODO reset?
+            ISOException.throwIt(Consts.E_NOT_ENOUGH_COMMITMENTS);
+        }
+        if(index == -1) {
+            // TODO reset
+            ISOException.throwIt(Consts.E_IDENTIFIER_NOT_INCLUDED);
+        }
+
+        byte[] apduBuffer = apdu.getBuffer();
+        computeBindingFactors(apduBuffer, ISO7816.OFFSET_CDATA, apduBuffer[ISO7816.OFFSET_P1]);
         computeGroupCommitment();
         computeLambda();
-        computeChallenge(msg);
+        computeChallenge(apduBuffer, ISO7816.OFFSET_CDATA, apduBuffer[ISO7816.OFFSET_P1]);
         challenge.mod_mult(challenge, lambda, curve.rBN);
         challenge.mod_mult(challenge, secret, curve.rBN);
         tmp.mod_mult(bindingNonce, bindingFactors[index], curve.rBN);
         tmp.mod_add(hidingNonce, curve.rBN);
-        tmp.mod_add(challenge, curve.rBN); // result
+        tmp.mod_add(challenge, curve.rBN);
+        tmp.copy_to_buffer(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, (short) 32);
     }
 
     private void computeLambda() {
@@ -281,13 +296,13 @@ public class JCFROST extends Applet implements MultiSelectable {
         lambda.mod_mult(numerator, denominator, curve.rBN);
     }
 
-    private void computeChallenge(byte[] msg) {
+    private void computeChallenge(byte[] msg, short msgOffset, short msgLen) {
         hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
         encode(groupCommitment, ramArray, (short) 0);
         hasher.update(ramArray, (short) 0, (short) 33);
         encode(groupPublic, ramArray, (short) 0);
         hasher.update(ramArray, (short) 0, (short) 33);
-        hasher.update(msg, (short) 0, (short) msg.length);
+        hasher.update(msg, msgOffset, msgLen);
         hash_to_field_internal(Consts.H2_TAG, challenge);
     }
 
