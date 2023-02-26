@@ -69,6 +69,9 @@ public class JCFROST extends Applet implements MultiSelectable {
                 case Consts.INS_SETUP:
                     setup(apdu);
                     break;
+                case Consts.INS_COMMIT:
+                    commit(apdu);
+                    break;
 
                 // Unit tests
                 case Consts.INS_TEST_HASH:
@@ -169,6 +172,19 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
+    private void commit(APDU apdu) {
+        byte[] apduBuffer = apdu.getBuffer();
+        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
+        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
+        nonceGenerate(hidingNonce);
+        nonceGenerate(bindingNonce);
+        hidingPoint.multiplication(hidingNonce);
+        bindingPoint.multiplication(bindingNonce);
+        encode(hidingPoint, apduBuffer, (short) 0);
+        encode(hidingPoint, apduBuffer, (short) 33);
+        apdu.setOutgoingAndSend((short) 0, (short) 66);
+    }
+
     private void computeBindingFactors(byte[] msg) {
         h4(msg, (short) 0, (short) msg.length, rhoBuffer, (short) 0);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
@@ -206,15 +222,6 @@ public class JCFROST extends Applet implements MultiSelectable {
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }
-    }
-
-    private void commit() {
-        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
-        hidingPoint.setW(SecP256k1.G, (short) 0, (short) SecP256k1.G.length);
-        nonceGenerate(hidingNonce);
-        nonceGenerate(bindingNonce);
-        hidingPoint.multiplication(hidingNonce);
-        bindingPoint.multiplication(bindingNonce);
     }
 
     private void sign(byte[] msg) {

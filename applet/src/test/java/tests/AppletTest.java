@@ -32,6 +32,16 @@ public class AppletTest extends BaseTest {
     }
 
     @Test
+    public void testCommit() throws Exception {
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_COMMIT, 0, 0);
+        final ResponseAPDU responseAPDU = connect().transmit(cmd);
+        Assert.assertNotNull(responseAPDU);
+        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        // TODO check if proper points were output
+        Assert.assertEquals(responseAPDU.getData().length, 66);
+    }
+
+    @Test
     public void testH1() throws Exception {
         final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_TEST_HASH, 1, 0);
         final ResponseAPDU responseAPDU = connect().transmit(cmd);

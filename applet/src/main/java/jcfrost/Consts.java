@@ -4,6 +4,7 @@ public class Consts {
     public static final byte CLA_JCFROST = (byte) 0x00;
     public static final byte INS_INITIALIZE = (byte) 0x00;
     public static final byte INS_SETUP = (byte) 0x01;
+    public static final byte INS_COMMIT = (byte) 0x02;
 
     public static final byte INS_TEST_HASH = (byte) 0xE1;
 
