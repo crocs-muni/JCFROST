@@ -13,14 +13,15 @@ public class JCFROST extends Applet implements MultiSelectable {
     private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
 
     // Long-term variables
-    private byte min_parties;
-    private byte max_parties;
+    private byte minParties;
+    private byte maxParties;
     private byte identifier;
     private BigNat secret;
     private ECPoint groupPublic;
 
     // Short-term variables
-    private short index;
+    private short storedCommitments = 0;
+    private short index = -1;
     private BigNat hidingNonce, bindingNonce;
     private ECPoint hidingPoint, bindingPoint;
     private byte[] identifiers;
@@ -71,6 +72,9 @@ public class JCFROST extends Applet implements MultiSelectable {
                     break;
                 case Consts.INS_COMMIT:
                     commit(apdu);
+                    break;
+                case Consts.INS_COMMITMENT:
+                    commitment(apdu);
                     break;
 
                 // Unit tests
@@ -140,8 +144,8 @@ public class JCFROST extends Applet implements MultiSelectable {
         tmpPoint2 = new ECPoint(curve, ecc.rm);
 
         identifiers = new byte[Consts.MAX_PARTIES];
-        hidingCommitments = new byte[65][Consts.MAX_PARTIES];
-        bindingCommitments = new byte[65][Consts.MAX_PARTIES];
+        hidingCommitments = new byte[Consts.MAX_PARTIES][33];
+        bindingCommitments = new byte[Consts.MAX_PARTIES][33];
         bindingFactors = new BigNat[Consts.MAX_PARTIES];
         lambda = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
         for(short i = 0; i < (short) Consts.MAX_PARTIES; ++i) {
@@ -153,15 +157,18 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private void setup(APDU apdu) {
         byte[] apduBuffer = apdu.getBuffer();
-        min_parties = apduBuffer[ISO7816.OFFSET_P1];
-        max_parties = apduBuffer[ISO7816.OFFSET_P2];
+        minParties = apduBuffer[ISO7816.OFFSET_P1];
+        maxParties = apduBuffer[ISO7816.OFFSET_P2];
+        if(maxParties > Consts.MAX_PARTIES) {
+            ISOException.throwIt(Consts.E_TOO_MANY_PARTIES);
+        }
         identifier = apduBuffer[ISO7816.OFFSET_CDATA];
         Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), secret.as_byte_array(), (short) 0, (short) 32);
         // TODO decode if card does not support compressed form
         groupPublic.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), (short) 33);
         if (DEBUG) {
-            apduBuffer[0] = min_parties;
-            apduBuffer[1] = max_parties;
+            apduBuffer[0] = minParties;
+            apduBuffer[1] = maxParties;
             apduBuffer[2] = identifier;
             Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, apduBuffer, (short) 3, secret.length());
             encode(groupPublic, apduBuffer, (short) (3 + secret.length()));
@@ -183,6 +190,26 @@ public class JCFROST extends Applet implements MultiSelectable {
         encode(hidingPoint, apduBuffer, (short) 0);
         encode(hidingPoint, apduBuffer, (short) 33);
         apdu.setOutgoingAndSend((short) 0, (short) 66);
+    }
+
+    private void commitment(APDU apdu) {
+        byte[] apduBuffer = apdu.getBuffer();
+        if(storedCommitments >= maxParties) {
+            // TODO reset
+            ISOException.throwIt(Consts.E_TOO_MANY_COMMITMENTS);
+        }
+        identifiers[storedCommitments] = apduBuffer[ISO7816.OFFSET_P1];
+        if(storedCommitments > 0 && identifiers[storedCommitments] <= identifiers[(short) (storedCommitments - 1)]) {
+            // TODO reset
+            ISOException.throwIt(Consts.E_IDENTIFIER_ORDERING);
+        }
+        if(identifiers[storedCommitments] == identifier) {
+            index = storedCommitments;
+            // TODO check if provided commitments match local commitments
+        }
+        Util.arrayCopyNonAtomic(apduBuffer, ISO7816.OFFSET_CDATA, hidingCommitments[storedCommitments], (short) 0, (short) 33);
+        Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), bindingCommitments[storedCommitments], (short) 0, (short) 33);
+        ++storedCommitments;
     }
 
     private void computeBindingFactors(byte[] msg) {
@@ -237,8 +264,6 @@ public class JCFROST extends Applet implements MultiSelectable {
     }
 
     private void computeLambda() {
-        // TODO identifiers have to contain unique values - check when building identifiers
-        // TODO index has to correspond to identifier of this device - verify
         numerator.one();
         denominator.one();
         for(short j = 0; j < (short) identifiers.length; ++j) {
