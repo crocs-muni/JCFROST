@@ -20,9 +20,7 @@ public class FrostSession {
     private ECPoint hidingPoint = new ECPoint(JCFROST.curve, JCFROST.ecc.rm);
     private ECPoint bindingPoint = new ECPoint(JCFROST.curve, JCFROST.ecc.rm);
 
-    private byte[] identifiers = new byte[Consts.MAX_PARTIES];
-    private byte[][] hidingCommitments = new byte[Consts.MAX_PARTIES][33];
-    private byte[][] bindingCommitments = new byte[Consts.MAX_PARTIES][33];
+    private FrostCommitment[] commitments = new FrostCommitment[Consts.MAX_PARTIES];
 
     // Computation-only (TODO consider sharing with other instances)
     private BigNat identifierBuffer = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.ecc.rm);
@@ -41,6 +39,7 @@ public class FrostSession {
 
     public FrostSession() {
         for(short i = 0; i < (short) Consts.MAX_PARTIES; ++i) {
+            commitments[i] = new FrostCommitment();
             bindingFactors[i] = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.ecc.rm);
         }
     }
@@ -62,17 +61,17 @@ public class FrostSession {
             // TODO reset
             ISOException.throwIt(Consts.E_TOO_MANY_COMMITMENTS);
         }
-        identifiers[storedCommitments] = party_identifier;
-        if(storedCommitments > 0 && identifiers[storedCommitments] <= identifiers[(short) (storedCommitments - 1)]) {
+        commitments[storedCommitments].identifier = party_identifier;
+        if(storedCommitments > 0 && commitments[storedCommitments].identifier <= commitments[(short) (storedCommitments - 1)].identifier) {
             // TODO reset
             ISOException.throwIt(Consts.E_IDENTIFIER_ORDERING);
         }
-        if(identifiers[storedCommitments] == JCFROST.identifier) {
+        if(commitments[storedCommitments].identifier == JCFROST.identifier) {
             index = storedCommitments;
             // TODO check if provided commitments match local commitments
         }
-        Util.arrayCopyNonAtomic(data, offset, hidingCommitments[storedCommitments], (short) 0, (short) 33);
-        Util.arrayCopyNonAtomic(data, (short) (offset + 33), bindingCommitments[storedCommitments], (short) 0, (short) 33);
+        Util.arrayCopyNonAtomic(data, offset, commitments[storedCommitments].hiding, (short) 0, (short) 33);
+        Util.arrayCopyNonAtomic(data, (short) (offset + 33), commitments[storedCommitments].binding, (short) 0, (short) 33);
         ++storedCommitments;
     }
 
@@ -110,10 +109,10 @@ public class FrostSession {
             if(j == index) {
                 continue;
             }
-            identifierBuffer.as_byte_array()[31] = identifiers[j];
+            identifierBuffer.as_byte_array()[31] = commitments[j].identifier;
             numerator.mod_mult(numerator, identifierBuffer, JCFROST.curve.rBN);
             tmp.clone(identifierBuffer);
-            identifierBuffer.as_byte_array()[31] = identifiers[index];
+            identifierBuffer.as_byte_array()[31] = commitments[index].identifier;
             tmp.mod_sub(identifierBuffer, JCFROST.curve.rBN);
             denominator.mod_mult(denominator, tmp, JCFROST.curve.rBN);
         }
@@ -136,28 +135,28 @@ public class FrostSession {
         JCFROST.hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         JCFROST.hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
         for(short j = 0; j < storedCommitments; ++j) {
-            identifierBuffer.as_byte_array()[31] = identifiers[j]; // TODO check whether the rest of the array is all zeros
+            identifierBuffer.as_byte_array()[31] = commitments[j].identifier; // TODO check whether the rest of the array is all zeros
             JCFROST.hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
-            JCFROST.hasher.update(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
-            JCFROST.hasher.update(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
+            JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
+            JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
         }
         JCFROST.hasher.doFinal(null, (short) 0, (short) 0, rhoBuffer, (short) 32);
 
         Util.arrayFillNonAtomic(rhoBuffer, (short) 64, (short) 31, (byte) 0);
         for(short j = 0; j < storedCommitments; ++j) {
-            rhoBuffer[95] = identifiers[j];
+            rhoBuffer[95] = commitments[j].identifier;
             JCFROST.hasher.h1(rhoBuffer, (short) 0, (short) rhoBuffer.length, bindingFactors[j]);
         }
     }
 
     private void computeGroupCommitment() {
-        tmpPoint.setW(bindingCommitments[0], (short) 0, (short) bindingCommitments[0].length);
-        tmpPoint2.setW(hidingCommitments[0], (short) 0, (short) hidingCommitments[0].length);
+        tmpPoint.setW(commitments[0].binding, (short) 0, (short) 33);
+        tmpPoint2.setW(commitments[0].hiding, (short) 0, (short) 33);
         tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
         groupCommitment.copy(tmpPoint);
-        for(int j = 1; j < storedCommitments; ++j) {
-            tmpPoint.setW(bindingCommitments[j], (short) 0, (short) bindingCommitments[j].length);
-            tmpPoint2.setW(hidingCommitments[j], (short) 0, (short) hidingCommitments[j].length);
+        for(short j = 1; j < storedCommitments; ++j) {
+            tmpPoint.setW(commitments[j].binding, (short) 0, (short) 33);
+            tmpPoint2.setW(commitments[j].hiding, (short) 0, (short) 33);
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }

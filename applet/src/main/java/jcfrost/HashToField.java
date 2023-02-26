@@ -44,7 +44,7 @@ public class HashToField {
         short BLOCK = 32;
         // hashBuffer = b0 (BLOCK) || b1 (BLOCK) || b2 (BLOCK) || CONTEXT_STRING_LEN (BYTE)
 
-        hashBuffer[(3 * BLOCK)] = (byte) (Consts.CONTEXT_STRING.length + tag.length);
+        hashBuffer[(short) (3 * BLOCK)] = (byte) (Consts.CONTEXT_STRING.length + tag.length);
         hasher.update(Consts.HELPER, (short) 0, (short) Consts.HELPER.length);
         hasher.update(Consts.ZERO, (short) 0, (short) Consts.ZERO.length);
         hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
@@ -59,7 +59,7 @@ public class HashToField {
 
         // use b0 for temporary result of xor(b0, b1)
         for(short i = 0; i < BLOCK; ++i) {
-            hashBuffer[64 + i] = (byte) (hashBuffer[i] ^ hashBuffer[32 + i]);
+            hashBuffer[(short) (64 + i)] = (byte) (hashBuffer[i] ^ hashBuffer[(short) (32 + i)]);
         }
 
         hasher.update(hashBuffer, (short) (2 * BLOCK), BLOCK);

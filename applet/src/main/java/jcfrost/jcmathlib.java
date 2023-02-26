@@ -31,7 +31,7 @@ public class jcmathlib {
      *
     * @author Vasilios Mavroudis and Petr Svenda
      */
-    static class ReturnCodes {
+    public static class ReturnCodes {
         // Custom error response codes
         public static final short SW_BIGNAT_RESIZETOLONGER          = (short) 0x7000;
         public static final short SW_BIGNAT_REALLOCATIONNOTALLOWED  = (short) 0x7001;
@@ -54,7 +54,7 @@ public class jcmathlib {
     /**
      * @author Vasilios Mavroudis and Petr Svenda and Antonin Dufka
      */
-    static class ECPoint {
+    public static class ECPoint {
         private final ResourceManager rm;
     
         private ECPublicKey point;
@@ -792,7 +792,7 @@ public class jcmathlib {
      *
      * @author Antonin Dufka
      */
-    static class OperationSupport {
+    public static class OperationSupport {
         private static OperationSupport instance;
     
         public static final short SIMULATOR = 0x0000;
@@ -861,7 +861,7 @@ public class jcmathlib {
      * Configure itself to proper lengths and other parameters according to intended length of ECC
      * @author Petr Svenda
      */
-    static class ECConfig {
+    public static class ECConfig {
         /**
          * The size of speedup engine used for fast modulo exponent computation
          * (must be larger than biggest Bignat used)
@@ -954,7 +954,7 @@ public class jcmathlib {
      * 
      * @author Vasilios Mavroudis and Petr Svenda
      */
-    static class ECCurve {
+    public static class ECCurve {
         public final short KEY_LENGTH; //Bits
         public final short POINT_SIZE; //Bytes
         public final short COORD_SIZE; //Bytes
@@ -1148,7 +1148,7 @@ public class jcmathlib {
     /**
      * @author Vasilios Mavroudis and Petr Svenda
      */
-    static class BigNat {
+    public static class BigNat {
         // Threshold bit length of mult operand to invoke RSA trick
         public static final short FAST_MULT_VIA_RSA_THRESHOLD_LENGTH = (short) 16;
     
@@ -3082,7 +3082,7 @@ public class jcmathlib {
     /**
      * @author Vasilios Mavroudis and Petr Svenda
      */
-    static class Integer {
+    public static class Integer {
         private ResourceManager rm;
         private BigNat magnitude;
         private byte sign;
@@ -3459,7 +3459,7 @@ public class jcmathlib {
     /**
      * @author Petr Svenda
      */
-    static class ResourceManager {
+    public static class ResourceManager {
         public ObjectLocker locker;
         public ObjectAllocator memAlloc;
     
@@ -3650,7 +3650,7 @@ public class jcmathlib {
         }
     }
     
-    static class SecP256r1 {
+    public static class SecP256r1 {
     
         public final static short KEY_LENGTH = 256;//Bits
         public final static short POINT_SIZE = 65; //Bytes
@@ -3686,7 +3686,7 @@ public class jcmathlib {
                 (byte) 0x84, (byte) 0xf3, (byte) 0xb9, (byte) 0xca, (byte) 0xc2, (byte) 0xfc, 0x63, 0x25, 0x51 };
     }
     
-    static class SecP256k1 {
+    public static class SecP256k1 {
     
         public final static short KEY_LENGTH = 256; // Bits
         public final static short POINT_SIZE = 65; // Bytes
@@ -3762,7 +3762,7 @@ public class jcmathlib {
      *
     * @author Vasilios Mavroudis and Petr Svenda
      */
-    static class ObjectLocker {
+    public static class ObjectLocker {
         /**
          * Configuration flag controlling clearing of shared objects on lock as
          * prevention of unwanted leak of sensitive information from previous
@@ -4025,7 +4025,7 @@ public class jcmathlib {
      * 
     * @author Petr Svenda
      */
-    static class ObjectAllocator {
+    public static class ObjectAllocator {
         short allocatedInRAM = 0;
         short allocatedInEEPROM = 0;
         byte[] ALLOCATOR_TYPE_ARRAY;
