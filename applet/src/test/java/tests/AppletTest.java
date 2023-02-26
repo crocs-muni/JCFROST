@@ -8,12 +8,25 @@ import jcfrost.JCFROST;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
+import org.json.*;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
+import java.io.File;
+import java.nio.file.Files;
 
 public class AppletTest extends BaseTest {
+    private JSONObject testVectors = new JSONObject(new String(Files.readAllBytes(new File("src/test/resources/frost-secp256k1-sha256.json").toPath())));
+    private byte[] secret = Hex.decode(testVectors.getJSONObject("inputs").getJSONObject("participants").getJSONObject("1").getString("participant_share"));
+    private byte[] groupKey = Hex.decode(testVectors.getJSONObject("inputs").getString("group_public_key"));
+    private int maxParticipants = testVectors.getJSONObject("config").getInt("MAX_PARTICIPANTS");
+    private int minParticipants = testVectors.getJSONObject("config").getInt("MIN_PARTICIPANTS");
+    private int identifier = 1;
+    private byte[] message = Hex.decode(testVectors.getJSONObject("inputs").getString("message"));
+    private byte[] hidingNonceCommitment3 = Hex.decode(testVectors.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject("3").getString("hiding_nonce_commitment"));
+    private byte[] bindingNonceCommitment3 = Hex.decode(testVectors.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject("3").getString("binding_nonce_commitment"));
+
     public AppletTest() throws Exception {
         setCardType(CardType.JCARDSIMLOCAL);
         setSimulateStateful(true);
@@ -21,9 +34,7 @@ public class AppletTest extends BaseTest {
     }
 
     public ResponseAPDU setup(CardManager cm) throws CardException {
-        byte[] secret = Hex.decode("08f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1ea2b01f4254c");
-        byte[] groupKey = Hex.decode("02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f64663b0eae87d87b4f");
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_SETUP, 2, 3, Util.concat(new byte[]{1}, Util.concat(secret, groupKey)));
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_SETUP, minParticipants, maxParticipants, Util.concat(new byte[]{(byte) identifier}, Util.concat(secret, groupKey)));
         return cm.transmit(cmd);
     }
 
@@ -48,8 +59,9 @@ public class AppletTest extends BaseTest {
         ResponseAPDU responseAPDU = setup(cm);
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        if(JCFROST.DEBUG) {
-            Assert.assertArrayEquals(responseAPDU.getData(), Hex.decode("02030108f89ffe80ac94dcb920c26f3f46140bfc7f95b493f8310f5fc1ea2b01f4254c02f37c34b66ced1fb51c34a90bdae006901f10625cc06c4f64663b0eae87d87b4f"));
+        if (JCFROST.DEBUG) {
+            byte[] expected = Util.concat(new byte[]{(byte) minParticipants, (byte) maxParticipants, (byte) identifier}, secret, groupKey);
+            Assert.assertArrayEquals(responseAPDU.getData(), expected);
         }
     }
 
@@ -72,7 +84,7 @@ public class AppletTest extends BaseTest {
         ResponseAPDU responseAPDU = commitment(cm, 1, data);
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        responseAPDU = commitment(cm, 3, Util.concat(Hex.decode("030278e6e6055fb963b40e0c3c37099f803f3f38930fc89092517f8ce1b47e8d6b"), Hex.decode("028eb6d238c6c0fc6216906706ad0ff9943c6c1d6079cdf74f674481ebb2485db3")));
+        responseAPDU = commitment(cm, 3, Util.concat(hidingNonceCommitment3, bindingNonceCommitment3));
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
     }
@@ -83,8 +95,8 @@ public class AppletTest extends BaseTest {
         setup(cm);
         byte[] data = commit(cm).getData();
         commitment(cm, 1, data);
-        commitment(cm, 3, Util.concat(Hex.decode("030278e6e6055fb963b40e0c3c37099f803f3f38930fc89092517f8ce1b47e8d6b"), Hex.decode("028eb6d238c6c0fc6216906706ad0ff9943c6c1d6079cdf74f674481ebb2485db3")));
-        ResponseAPDU responseAPDU = sign(cm, Hex.decode("74657374"));
+        commitment(cm, 3, Util.concat(hidingNonceCommitment3, bindingNonceCommitment3));
+        ResponseAPDU responseAPDU = sign(cm, message);
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertEquals(responseAPDU.getData().length, 32);
