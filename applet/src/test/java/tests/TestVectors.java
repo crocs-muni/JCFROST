@@ -22,6 +22,16 @@ public class TestVectors {
         return data.getJSONObject("config").getInt("MAX_PARTICIPANTS");
     }
 
+    public int[] participants() {
+
+        String[] ids = data.getJSONObject("round_one_outputs").getString("participant_list").split(",");
+        int[] result = new int[ids.length];
+        for(int i = 0; i < ids.length; ++i) {
+            result[i] = Integer.valueOf(ids[i]);
+        }
+        return result;
+    }
+
     public byte[] secret(int identifier) {
         return Hex.decode(data.getJSONObject("inputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("participant_share"));
     }

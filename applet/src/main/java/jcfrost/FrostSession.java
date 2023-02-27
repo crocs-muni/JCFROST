@@ -104,7 +104,7 @@ public class FrostSession {
     private void nonceGenerate(BigNat outputNonce) {
         if(JCFROST.DEBUG) {
             Util.arrayCopyNonAtomic(JCFROST.DEBUG_RANDOMNESS, JCFROST.DEBUG_RANDOMNESS_OFFSET, nonceBuffer, (short) 0, (short) 32);
-            JCFROST.DEBUG_RANDOMNESS_OFFSET = (short) ((JCFROST.DEBUG_RANDOMNESS_OFFSET + 32) % JCFROST.DEBUG_RANDOMNESS.length);
+            JCFROST.DEBUG_RANDOMNESS_OFFSET = (short) ((short) (JCFROST.DEBUG_RANDOMNESS_OFFSET + 32) % JCFROST.DEBUG_RANDOMNESS.length);
         } else {
             rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
         }

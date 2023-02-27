@@ -88,13 +88,16 @@ public class AppletTest extends BaseTest {
     public void testCommitments() throws Exception {
         CardManager cm = connect();
         setup(cm);
-        byte[] data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
-        ResponseAPDU responseAPDU = commitment(cm, 1, data);
-        Assert.assertNotNull(responseAPDU);
-        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        responseAPDU = commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.bindingCommitment(3)));
-        Assert.assertNotNull(responseAPDU);
-        Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        byte[] card_data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
+        for(int identifier : tv.participants()) {
+            byte[] data = card_data;
+            if(identifier != CARD) {
+                data = Util.concat(tv.hidingCommitment(identifier), tv.bindingCommitment(identifier));
+            }
+            ResponseAPDU responseAPDU = commitment(cm, identifier, data);
+            Assert.assertNotNull(responseAPDU);
+            Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        }
         reset(cm);
     }
 
@@ -102,15 +105,22 @@ public class AppletTest extends BaseTest {
     public void testSign() throws Exception {
         CardManager cm = connect();
         setup(cm);
-        byte[] data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
-        commitment(cm, 1, data);
-        commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.bindingCommitment(3)));
+        byte[] card_data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
+        for(int identifier : tv.participants()) {
+            byte[] data = card_data;
+            if(identifier != CARD) {
+                data = Util.concat(tv.hidingCommitment(identifier), tv.bindingCommitment(identifier));
+            }
+            ResponseAPDU responseAPDU = commitment(cm, identifier, data);
+            Assert.assertNotNull(responseAPDU);
+            Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        }
         ResponseAPDU responseAPDU = sign(cm, tv.message());
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertEquals(responseAPDU.getData().length, 32);
         if(JCFROST.DEBUG) {
-            Assert.assertArrayEquals(tv.signature(1), responseAPDU.getData());
+            Assert.assertArrayEquals(tv.signature(CARD), responseAPDU.getData());
         }
         reset(cm);
     }
