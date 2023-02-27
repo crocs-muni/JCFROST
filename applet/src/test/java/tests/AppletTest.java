@@ -53,6 +53,11 @@ public class AppletTest extends BaseTest {
         return cm.transmit(cmd);
     }
 
+    public ResponseAPDU reset(CardManager cm) throws CardException {
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_RESET, 0, 0);
+        return cm.transmit(cmd);
+    }
+
     @Test
     public void testSetup() throws Exception {
         CardManager cm = connect();
@@ -63,6 +68,7 @@ public class AppletTest extends BaseTest {
             byte[] expected = Util.concat(new byte[]{(byte) minParticipants, (byte) maxParticipants, (byte) identifier}, secret, groupKey);
             Assert.assertArrayEquals(responseAPDU.getData(), expected);
         }
+        reset(cm);
     }
 
     @Test
@@ -74,6 +80,7 @@ public class AppletTest extends BaseTest {
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         // TODO check if proper points were output
         Assert.assertEquals(responseAPDU.getData().length, 66);
+        reset(cm);
     }
 
     @Test
@@ -87,6 +94,7 @@ public class AppletTest extends BaseTest {
         responseAPDU = commitment(cm, 3, Util.concat(hidingNonceCommitment3, bindingNonceCommitment3));
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
+        reset(cm);
     }
 
     @Test
@@ -100,5 +108,6 @@ public class AppletTest extends BaseTest {
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertEquals(responseAPDU.getData().length, 32);
+        reset(cm);
     }
 }

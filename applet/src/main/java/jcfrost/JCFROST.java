@@ -59,6 +59,9 @@ public class JCFROST extends Applet implements MultiSelectable {
                 case Consts.INS_SIGN:
                     sign(apdu);
                     break;
+                case Consts.INS_RESET:
+                    reset(apdu);
+                    break;
 
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -146,5 +149,10 @@ public class JCFROST extends Applet implements MultiSelectable {
         byte[] apduBuffer = apdu.getBuffer();
         frost.sign(apduBuffer, ISO7816.OFFSET_CDATA, apduBuffer[ISO7816.OFFSET_P1], apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, (short) 32);
+    }
+
+    private void reset(APDU apdu) {
+        frost.reset();
+        apdu.setOutgoing();
     }
 }

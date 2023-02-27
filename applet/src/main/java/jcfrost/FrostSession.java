@@ -52,17 +52,18 @@ public class FrostSession {
         bindingPoint.multiplication(bindingNonce);
         hidingPoint.encode(output, offset, true);
         bindingPoint.encode(output, (short) (offset + 33), true);
+        reset();
         return (short) 66;
     }
 
     public void commitment(byte party_identifier, byte[] data, short offset) {
         if(storedCommitments >= JCFROST.maxParties) {
-            // TODO reset
+            reset();
             ISOException.throwIt(Consts.E_TOO_MANY_COMMITMENTS);
         }
         commitments[storedCommitments].identifier = party_identifier;
-        if(storedCommitments > 0 && commitments[storedCommitments].identifier <= commitments[(short) (storedCommitments - 1)].identifier) {
-            // TODO reset
+        if(storedCommitments > 0 && party_identifier <= commitments[(short) (storedCommitments - 1)].identifier) {
+            reset();
             ISOException.throwIt(Consts.E_IDENTIFIER_ORDERING);
         }
         if(commitments[storedCommitments].identifier == JCFROST.identifier) {
@@ -76,11 +77,11 @@ public class FrostSession {
 
     public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
         if(storedCommitments < JCFROST.minParties) {
-            // TODO reset?
+            reset(); // TODO keep it?
             ISOException.throwIt(Consts.E_NOT_ENOUGH_COMMITMENTS);
         }
         if(index == -1) {
-            // TODO reset
+            reset();
             ISOException.throwIt(Consts.E_IDENTIFIER_NOT_INCLUDED);
         }
         computeBindingFactors(msg, msgOffset, msgLength);
@@ -93,6 +94,11 @@ public class FrostSession {
         tmp.mod_add(hidingNonce, JCFROST.curve.rBN);
         tmp.mod_add(challenge, JCFROST.curve.rBN);
         tmp.copy_to_buffer(output, outputOffset);
+    }
+
+    public void reset() {
+        storedCommitments = 0;
+        index = -1;
     }
 
     private void nonceGenerate(BigNat outputNonce) {
@@ -139,7 +145,7 @@ public class FrostSession {
             JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
             JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
         }
-        JCFROST.hasher.doFinal(null, (short) 0, (short) 0, rhoBuffer, (short) 32);
+        JCFROST.hasher.doFinal(ramArray, (short) 0, (short) 0, rhoBuffer, (short) 32);
 
         Util.arrayFillNonAtomic(rhoBuffer, (short) 64, (short) 31, (byte) 0);
         for(short j = 0; j < storedCommitments; ++j) {
