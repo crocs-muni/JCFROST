@@ -104,11 +104,14 @@ public class AppletTest extends BaseTest {
         setup(cm);
         byte[] data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
         commitment(cm, 1, data);
-        commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.hidingCommitment(3)));
+        commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.bindingCommitment(3)));
         ResponseAPDU responseAPDU = sign(cm, tv.message());
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertEquals(responseAPDU.getData().length, 32);
+        if(JCFROST.DEBUG) {
+            Assert.assertArrayEquals(tv.signature(1), responseAPDU.getData());
+        }
         reset(cm);
     }
 }

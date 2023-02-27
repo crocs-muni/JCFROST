@@ -145,7 +145,8 @@ public class FrostSession {
         JCFROST.hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         JCFROST.hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
         for(short j = 0; j < storedCommitments; ++j) {
-            identifierBuffer.as_byte_array()[31] = commitments[j].identifier; // TODO check whether the rest of the array is all zeros
+            Util.arrayFillNonAtomic(identifierBuffer.as_byte_array(), (short) 0, (short) 31, (byte) 0); // TODO remove if zeroed array can be ensured
+            identifierBuffer.as_byte_array()[31] = commitments[j].identifier;
             JCFROST.hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
             JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
             JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);

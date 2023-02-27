@@ -49,4 +49,8 @@ public class TestVectors {
     public byte[] message() {
         return Hex.decode(data.getJSONObject("inputs").getString("message"));
     }
+
+    public byte[] signature(int identifier) {
+        return Hex.decode(data.getJSONObject("round_two_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("sig_share"));
+    }
 }
