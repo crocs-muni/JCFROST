@@ -102,7 +102,12 @@ public class FrostSession {
     }
 
     private void nonceGenerate(BigNat outputNonce) {
-        rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
+        if(JCFROST.DEBUG) {
+            Util.arrayCopyNonAtomic(JCFROST.DEBUG_RANDOMNESS, JCFROST.DEBUG_RANDOMNESS_OFFSET, nonceBuffer, (short) 0, (short) 32);
+            JCFROST.DEBUG_RANDOMNESS_OFFSET = (short) ((JCFROST.DEBUG_RANDOMNESS_OFFSET + 32) % JCFROST.DEBUG_RANDOMNESS.length);
+        } else {
+            rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
+        }
         Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, nonceBuffer, (short) 32, (short) 32); // TODO can be preloaded in RAM
         JCFROST.hasher.h3(nonceBuffer, (short) 0, (short) nonceBuffer.length, outputNonce);
     }

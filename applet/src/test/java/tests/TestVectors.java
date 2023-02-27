@@ -38,6 +38,14 @@ public class TestVectors {
         return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("binding_nonce_commitment"));
     }
 
+    public byte[] hidingRandomness(int identifier) {
+        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("hiding_nonce_randomness"));
+    }
+
+    public byte[] bindingRandomness(int identifier) {
+        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("binding_nonce_randomness"));
+    }
+
     public byte[] message() {
         return Hex.decode(data.getJSONObject("inputs").getString("message"));
     }

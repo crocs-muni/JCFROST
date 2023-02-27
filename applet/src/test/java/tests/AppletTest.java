@@ -33,8 +33,8 @@ public class AppletTest extends BaseTest {
         return cm.transmit(cmd);
     }
 
-    public ResponseAPDU commit(CardManager cm) throws CardException {
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_COMMIT, 0, 0);
+    public ResponseAPDU commit(CardManager cm, byte[] data) throws CardException {
+        CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_COMMIT, data.length, 0, data);
         return cm.transmit(cmd);
     }
 
@@ -74,11 +74,13 @@ public class AppletTest extends BaseTest {
     public void testCommit() throws Exception {
         CardManager cm = connect();
         setup(cm);
-        ResponseAPDU responseAPDU = commit(cm);
+        ResponseAPDU responseAPDU = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD)));
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        // TODO check if proper points were output
         Assert.assertEquals(responseAPDU.getData().length, 66);
+        if(JCFROST.DEBUG) {
+            Assert.assertArrayEquals(Util.concat(tv.hidingCommitment(CARD), tv.bindingCommitment(CARD)), responseAPDU.getData());
+        }
         reset(cm);
     }
 
@@ -86,7 +88,7 @@ public class AppletTest extends BaseTest {
     public void testCommitments() throws Exception {
         CardManager cm = connect();
         setup(cm);
-        byte[] data = commit(cm).getData();
+        byte[] data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
         ResponseAPDU responseAPDU = commitment(cm, 1, data);
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
@@ -100,7 +102,7 @@ public class AppletTest extends BaseTest {
     public void testSign() throws Exception {
         CardManager cm = connect();
         setup(cm);
-        byte[] data = commit(cm).getData();
+        byte[] data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
         commitment(cm, 1, data);
         commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.hidingCommitment(3)));
         ResponseAPDU responseAPDU = sign(cm, tv.message());

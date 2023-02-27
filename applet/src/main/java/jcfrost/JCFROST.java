@@ -6,6 +6,8 @@ import jcfrost.jcmathlib.*;
 
 public class JCFROST extends Applet implements MultiSelectable {
     public final static boolean DEBUG = true;
+    public final static byte[] DEBUG_RANDOMNESS = new byte[64];
+    public static short DEBUG_RANDOMNESS_OFFSET = 0;
 
     public static ECConfig ecc;
     public static ECCurve curve;
@@ -138,6 +140,11 @@ public class JCFROST extends Applet implements MultiSelectable {
     }
 
     private void commit(APDU apdu) {
+        if(DEBUG) {
+            short len = (short) (apdu.getBuffer()[ISO7816.OFFSET_P1] & 0xff);
+            DEBUG_RANDOMNESS_OFFSET = 0;
+            Util.arrayCopyNonAtomic(apdu.getBuffer(), ISO7816.OFFSET_CDATA, DEBUG_RANDOMNESS, (short) 0, len);
+        }
         apdu.setOutgoingAndSend((short) 0, frost.commit(apdu.getBuffer(), (short) 0));
     }
 
