@@ -6,7 +6,6 @@ import javacard.framework.Util;
 import javacard.security.RandomData;
 import jcfrost.jcmathlib.*;
 
-import static jcfrost.JCFROST.encode;
 import static jcfrost.JCFROST.secret;
 
 public class FrostSession {
@@ -51,8 +50,8 @@ public class FrostSession {
         nonceGenerate(bindingNonce);
         hidingPoint.multiplication(hidingNonce);
         bindingPoint.multiplication(bindingNonce);
-        encode(hidingPoint, output, offset);
-        encode(bindingPoint, output, (short) (offset + 33));
+        hidingPoint.encode(output, offset, true);
+        bindingPoint.encode(output, (short) (offset + 33), true);
         return (short) 66;
     }
 
@@ -122,9 +121,9 @@ public class FrostSession {
 
     private void computeChallenge(byte[] msg, short msgOffset, short msgLen) {
         JCFROST.hasher.update(Consts.ZPAD, (short) 0, (short) Consts.ZPAD.length);
-        encode(groupCommitment, ramArray, (short) 0);
+        groupCommitment.encode(ramArray, (short) 0, true);
         JCFROST.hasher.update(ramArray, (short) 0, (short) 33);
-        encode(JCFROST.groupPublic, ramArray, (short) 0);
+        JCFROST.groupPublic.encode(ramArray, (short) 0, true);
         JCFROST.hasher.update(ramArray, (short) 0, (short) 33);
         JCFROST.hasher.update(msg, msgOffset, msgLen);
         JCFROST.hasher.hash_to_field_internal(Consts.H2_TAG, challenge);
@@ -150,13 +149,13 @@ public class FrostSession {
     }
 
     private void computeGroupCommitment() {
-        tmpPoint.setW(commitments[0].binding, (short) 0, (short) 33);
-        tmpPoint2.setW(commitments[0].hiding, (short) 0, (short) 33);
+        tmpPoint.decode(commitments[0].binding, (short) 0, (short) 33);
+        tmpPoint2.decode(commitments[0].hiding, (short) 0, (short) 33);
         tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
         groupCommitment.copy(tmpPoint);
         for(short j = 1; j < storedCommitments; ++j) {
-            tmpPoint.setW(commitments[j].binding, (short) 0, (short) 33);
-            tmpPoint2.setW(commitments[j].hiding, (short) 0, (short) 33);
+            tmpPoint.decode(commitments[j].binding, (short) 0, (short) 33);
+            tmpPoint2.decode(commitments[j].hiding, (short) 0, (short) 33);
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }

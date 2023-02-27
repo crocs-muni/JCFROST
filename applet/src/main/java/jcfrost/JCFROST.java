@@ -121,15 +121,13 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
         identifier = apduBuffer[ISO7816.OFFSET_CDATA];
         Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), secret.as_byte_array(), (short) 0, (short) 32);
-        // TODO decode if card does not support compressed form
-        groupPublic.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), (short) 33);
+        groupPublic.decode(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), (short) 33);
         if (DEBUG) {
             apduBuffer[0] = minParties;
             apduBuffer[1] = maxParties;
             apduBuffer[2] = identifier;
             Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, apduBuffer, (short) 3, secret.length());
-            encode(groupPublic, apduBuffer, (short) (3 + secret.length()));
-            groupPublic.getW(apduBuffer, (short) (3 + secret.length()));
+            groupPublic.encode(apduBuffer, (short) (3 + secret.length()), true);
             apdu.setOutgoingAndSend((short) 0, (short) (3 + secret.length() + 33));
         } else {
             apdu.setOutgoing();
@@ -142,13 +140,6 @@ public class JCFROST extends Applet implements MultiSelectable {
 
     private void commitment(APDU apdu) {
         frost.commitment(apdu.getBuffer()[ISO7816.OFFSET_P1], apdu.getBuffer(), ISO7816.OFFSET_CDATA);
-    }
-
-    public static void encode(ECPoint point, byte[] output, short offset) {
-        point.getW(output, offset);
-        if(output[offset] == (byte) 4) {
-            output[offset] = (output[(short) (offset + 32)] % 2 == 0 ? (byte) 2 : (byte) 3);
-        }
     }
 
     private void sign(APDU apdu) {

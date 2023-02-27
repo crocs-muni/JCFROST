@@ -48,6 +48,7 @@ public class jcmathlib {
         public static final short SW_ALLOCATOR_INVALIDOBJID         = (short) 0x700c;
         public static final short SW_OPERATION_NOT_SUPPORTED        = (short) 0x700d;
         public static final short SW_NOT_INITIALIZED                = (short) 0x700e;
+        public static final short SW_ECPOINT_INVALID                = (short) 0x700f;
     }
     
     
@@ -725,6 +726,113 @@ public class jcmathlib {
             signEngine.init(publicKey, Signature.MODE_VERIFY);
             return signEngine.verify(msg, (short) 0, (short) msg.length, tmpSignArray, (short) 0, signLen);
         }
+    
+    
+        /**
+         * Decode SEC1-encoded point and load it into this.
+         *
+         * @param point array containing SEC1-encoded point
+         * @param offset offset within the output buffer
+         * @param length length of the encoded point
+         * @return true if the point was compressed; false otherwise
+         */
+        public boolean decode(byte[] point, short offset, short length) {
+            if(length == (short) (1 + 2 * curve.COORD_SIZE) && point[offset] == 0x04) {
+                setW(point, offset, length);
+                return false;
+            }
+            if (length == (short) (1 + curve.COORD_SIZE)) {
+                BigNat y = rm.EC_BN_C;
+                BigNat x = rm.EC_BN_D;
+                BigNat p = rm.EC_BN_E;
+                byte[] pointBuffer = rm.POINT_ARRAY_A;
+    
+                x.lock();
+                x.from_byte_array(curve.COORD_SIZE, (short) 0, point, (short) (offset + 1));
+    
+                //Y^2 = X^3 + XA + B = x(x^2+A)+B
+                y.lock();
+                y.clone(x);
+                y.mod_exp(ResourceManager.TWO, curve.pBN);
+                y.mod_add(curve.aBN, curve.pBN);
+                y.mod_mult(y, x, curve.pBN);
+                y.mod_add(curve.bBN, curve.pBN);
+                y.sqrt_FP(curve.pBN);
+    
+                rm.lock(pointBuffer);
+                pointBuffer[0] = 0x04;
+                x.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
+                x.unlock();
+    
+                p.lock();
+                byte parity = (byte) ((y.as_byte_array()[(short) (curve.COORD_SIZE - 1)] & 0xff) % 2);
+                if ((parity == 0 && point[offset] != (byte) 0x02) || (parity == 1 && point[offset] != (byte) 0x03)) {
+                    p.from_byte_array(curve.p);
+                    p.subtract(y);
+                    p.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (curve.COORD_SIZE + 1));
+                } else {
+                    y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (curve.COORD_SIZE + 1));
+                }
+                y.unlock();
+                p.unlock();
+                setW(pointBuffer, (short) 0, curve.POINT_SIZE);
+                rm.unlock(pointBuffer);
+                return true;
+            }
+            ISOException.throwIt(ReturnCodes.SW_ECPOINT_INVALID);
+            return true; // unreachable
+        }
+    
+        /**
+         * Encode this point into the output buffer.
+         *
+         * @param output output buffer; MUST be able to store offset + uncompressed size bytes
+         * @param offset offset within the output buffer
+         * @param compressed output compressed point if true; uncompressed otherwise
+         * @return length of output point
+         */
+        public short encode(byte[] output, short offset, boolean compressed) {
+            getW(output, offset);
+    
+            if(compressed) {
+                if(output[offset] == (byte) 0x04) {
+                    output[offset] = (byte) (((output[(short) (offset + 2 * curve.COORD_SIZE)] & 0xff) % 2) == 0 ? 2 : 3);
+                }
+                return (short) (curve.COORD_SIZE + 1);
+            }
+    
+            if(output[offset] != (byte) 0x04) {
+                BigNat y = rm.EC_BN_C;
+                BigNat x = rm.EC_BN_D;
+                BigNat p = rm.EC_BN_E;
+                x.lock();
+                x.from_byte_array(curve.COORD_SIZE, (short) 0, output, (short) (offset + 1));
+    
+                //Y^2 = X^3 + XA + B = x(x^2+A)+B
+                y.lock();
+                y.clone(x);
+                y.mod_exp(ResourceManager.TWO, curve.pBN);
+                y.mod_add(curve.aBN, curve.pBN);
+                y.mod_mult(y, x, curve.pBN);
+                x.unlock();
+                y.mod_add(curve.bBN, curve.pBN);
+                y.sqrt_FP(curve.pBN);
+                p.lock();
+                byte parity = (byte) ((y.as_byte_array()[(short) (curve.COORD_SIZE - 1)] & 0xff) % 2);
+                if ((parity == 0 && output[offset] != (byte) 0x02) || (parity == 1 && output[offset] != (byte) 0x03)) {
+                    p.from_byte_array(curve.p);
+                    p.subtract(y);
+                    p.prepend_zeros(curve.COORD_SIZE, output, (short) (offset + curve.COORD_SIZE + 1));
+                } else {
+                    y.prepend_zeros(curve.COORD_SIZE, output, (short) (offset + curve.COORD_SIZE + 1));
+                }
+                y.unlock();
+                p.unlock();
+                output[offset] = (byte) 0x04;
+            }
+            return (short) (2 * curve.COORD_SIZE + 1);
+        }
+    
     
     
         //
@@ -3053,21 +3161,6 @@ public class jcmathlib {
         }
     
         /**
-         * Set content of Bignat internal array
-         *
-         * @param this_offset       offset where data should be stored
-         * @param from_array        data array to deserialize from
-         * @param from_array_length available data in {@code from_array}
-         * @param from_array_offset offset in {@code from_array}
-         * @return the number of shorts actually read, except for the case where
-         * deserialization finished by reading precisely {@code len} shorts, in this
-         * case {@code len + 1} is returned.
-         */
-        public short set_from_byte_array(short this_offset, byte[] from_array, short from_array_offset, short from_array_length) {
-            return from_byte_array(from_array_length, this_offset, from_array, from_array_offset);
-        }
-    
-        /**
          * Set content of BigNat internal array
          *
          * @param from_array data array to deserialize from
@@ -3455,7 +3548,7 @@ public class jcmathlib {
             this.magnitude.mod(other.getMagnitude());
         }
     }
-    
+
     /**
      * @author Petr Svenda
      */
