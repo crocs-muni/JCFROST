@@ -5,27 +5,16 @@ import cz.muni.fi.crocs.rcard.client.Util;
 import jcfrost.Consts;
 import cz.muni.fi.crocs.rcard.client.CardType;
 import jcfrost.JCFROST;
-import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
-import org.json.*;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
-import java.io.File;
-import java.nio.file.Files;
 
 public class AppletTest extends BaseTest {
-    private JSONObject testVectors = new JSONObject(new String(Files.readAllBytes(new File("src/test/resources/frost-secp256k1-sha256.json").toPath())));
-    private byte[] secret = Hex.decode(testVectors.getJSONObject("inputs").getJSONObject("participants").getJSONObject("1").getString("participant_share"));
-    private byte[] groupKey = Hex.decode(testVectors.getJSONObject("inputs").getString("group_public_key"));
-    private int maxParticipants = testVectors.getJSONObject("config").getInt("MAX_PARTICIPANTS");
-    private int minParticipants = testVectors.getJSONObject("config").getInt("MIN_PARTICIPANTS");
-    private int identifier = 1;
-    private byte[] message = Hex.decode(testVectors.getJSONObject("inputs").getString("message"));
-    private byte[] hidingNonceCommitment3 = Hex.decode(testVectors.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject("3").getString("hiding_nonce_commitment"));
-    private byte[] bindingNonceCommitment3 = Hex.decode(testVectors.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject("3").getString("binding_nonce_commitment"));
+    TestVectors tv = new TestVectors("src/test/resources/frost-secp256k1-sha256.json");
+    int CARD = 1;
 
     public AppletTest() throws Exception {
         setCardType(CardType.JCARDSIMLOCAL);
@@ -34,7 +23,13 @@ public class AppletTest extends BaseTest {
     }
 
     public ResponseAPDU setup(CardManager cm) throws CardException {
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_SETUP, minParticipants, maxParticipants, Util.concat(new byte[]{(byte) identifier}, Util.concat(secret, groupKey)));
+        final CommandAPDU cmd = new CommandAPDU(
+                Consts.CLA_JCFROST,
+                Consts.INS_SETUP,
+                tv.minParticipants(),
+                tv.maxParticipants(),
+                Util.concat(new byte[]{(byte) CARD}, tv.secret(CARD), tv.groupKey())
+        );
         return cm.transmit(cmd);
     }
 
@@ -65,7 +60,11 @@ public class AppletTest extends BaseTest {
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         if (JCFROST.DEBUG) {
-            byte[] expected = Util.concat(new byte[]{(byte) minParticipants, (byte) maxParticipants, (byte) identifier}, secret, groupKey);
+            byte[] expected = Util.concat(
+                    new byte[]{(byte) tv.minParticipants(), (byte) tv.maxParticipants(), (byte) CARD},
+                    tv.secret(CARD),
+                    tv.groupKey()
+            );
             Assert.assertArrayEquals(responseAPDU.getData(), expected);
         }
         reset(cm);
@@ -91,7 +90,7 @@ public class AppletTest extends BaseTest {
         ResponseAPDU responseAPDU = commitment(cm, 1, data);
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
-        responseAPDU = commitment(cm, 3, Util.concat(hidingNonceCommitment3, bindingNonceCommitment3));
+        responseAPDU = commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.bindingCommitment(3)));
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         reset(cm);
@@ -103,8 +102,8 @@ public class AppletTest extends BaseTest {
         setup(cm);
         byte[] data = commit(cm).getData();
         commitment(cm, 1, data);
-        commitment(cm, 3, Util.concat(hidingNonceCommitment3, bindingNonceCommitment3));
-        ResponseAPDU responseAPDU = sign(cm, message);
+        commitment(cm, 3, Util.concat(tv.hidingCommitment(3), tv.hidingCommitment(3)));
+        ResponseAPDU responseAPDU = sign(cm, tv.message());
         Assert.assertNotNull(responseAPDU);
         Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         Assert.assertEquals(responseAPDU.getData().length, 32);
