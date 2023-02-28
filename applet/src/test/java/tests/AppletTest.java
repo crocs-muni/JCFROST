@@ -5,12 +5,18 @@ import cz.muni.fi.crocs.rcard.client.Util;
 import jcfrost.Consts;
 import cz.muni.fi.crocs.rcard.client.CardType;
 import jcfrost.JCFROST;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.bouncycastle.math.ec.ECCurve;
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
+import java.security.Security;
+import java.util.Arrays;
 
 public class AppletTest extends BaseTest {
     TestVectors tv = new TestVectors("src/test/resources/frost-secp256k1-sha256.json");
@@ -22,13 +28,19 @@ public class AppletTest extends BaseTest {
         connect().transmit(new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_INITIALIZE, 0, 0));
     }
 
+    public byte[] recodePoint(byte[] point) {
+        Security.addProvider(new BouncyCastleProvider());
+        ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        return spec.getCurve().decodePoint(point).getEncoded(JCFROST.POINT_SIZE == 33);
+    }
+
     public ResponseAPDU setup(CardManager cm) throws CardException {
         final CommandAPDU cmd = new CommandAPDU(
                 Consts.CLA_JCFROST,
                 Consts.INS_SETUP,
                 tv.minParticipants(),
                 tv.maxParticipants(),
-                Util.concat(new byte[]{(byte) CARD}, tv.secret(CARD), tv.groupKey())
+                Util.concat(new byte[]{(byte) CARD}, tv.secret(CARD), recodePoint(tv.groupKey()))
         );
         return cm.transmit(cmd);
     }
@@ -38,8 +50,8 @@ public class AppletTest extends BaseTest {
         return cm.transmit(cmd);
     }
 
-    public ResponseAPDU commitment(CardManager cm, int identifier, byte[] data) throws CardException {
-        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_COMMITMENT, identifier, 0, data);
+    public ResponseAPDU commitment(CardManager cm, int identifier, byte[] hiding, byte[] binding) throws CardException {
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_COMMITMENT, identifier, 0, Util.concat(recodePoint(hiding), recodePoint(binding)));
         return cm.transmit(cmd);
     }
 
@@ -90,11 +102,13 @@ public class AppletTest extends BaseTest {
         setup(cm);
         byte[] card_data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
         for(int identifier : tv.participants()) {
-            byte[] data = card_data;
+            byte[] hiding = Arrays.copyOfRange(card_data, 0, 33);
+            byte[] binding = Arrays.copyOfRange(card_data, 33, 66);
             if(identifier != CARD) {
-                data = Util.concat(tv.hidingCommitment(identifier), tv.bindingCommitment(identifier));
+                hiding = tv.hidingCommitment(identifier);
+                binding = tv.bindingCommitment(identifier);
             }
-            ResponseAPDU responseAPDU = commitment(cm, identifier, data);
+            ResponseAPDU responseAPDU = commitment(cm, identifier, hiding, binding);
             Assert.assertNotNull(responseAPDU);
             Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         }
@@ -107,11 +121,13 @@ public class AppletTest extends BaseTest {
         setup(cm);
         byte[] card_data = commit(cm, Util.concat(tv.hidingRandomness(CARD), tv.bindingRandomness(CARD))).getData();
         for(int identifier : tv.participants()) {
-            byte[] data = card_data;
+            byte[] hiding = Arrays.copyOfRange(card_data, 0, 33);
+            byte[] binding = Arrays.copyOfRange(card_data, 33, 66);
             if(identifier != CARD) {
-                data = Util.concat(tv.hidingCommitment(identifier), tv.bindingCommitment(identifier));
+                hiding = tv.hidingCommitment(identifier);
+                binding = tv.bindingCommitment(identifier);
             }
-            ResponseAPDU responseAPDU = commitment(cm, identifier, data);
+            ResponseAPDU responseAPDU = commitment(cm, identifier, hiding, binding);
             Assert.assertNotNull(responseAPDU);
             Assert.assertEquals(responseAPDU.getSW(), 0x9000);
         }

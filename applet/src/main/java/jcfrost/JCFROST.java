@@ -4,8 +4,9 @@ import javacard.framework.*;
 import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
-public class JCFROST extends Applet implements MultiSelectable {
-    public final static boolean DEBUG = true;
+public class JCFROST extends Applet {
+    public final static boolean DEBUG = false;
+    public final static short POINT_SIZE = 65;
     public final static byte[] DEBUG_RANDOMNESS = new byte[64];
     public static short DEBUG_RANDOMNESS_OFFSET = 0;
 
@@ -126,7 +127,7 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
         identifier = apduBuffer[ISO7816.OFFSET_CDATA];
         Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), secret.as_byte_array(), (short) 0, (short) 32);
-        groupPublic.decode(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), (short) 33);
+        groupPublic.decode(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), POINT_SIZE);
         if (DEBUG) {
             apduBuffer[0] = minParties;
             apduBuffer[1] = maxParties;

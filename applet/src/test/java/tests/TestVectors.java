@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class TestVectors {
-    private JSONObject data;
+    private final JSONObject data;
 
     public TestVectors(String path) throws IOException {
         data = new JSONObject(new String(Files.readAllBytes(new File(path).toPath())));
@@ -23,11 +23,10 @@ public class TestVectors {
     }
 
     public int[] participants() {
-
         String[] ids = data.getJSONObject("round_one_outputs").getString("participant_list").split(",");
         int[] result = new int[ids.length];
         for(int i = 0; i < ids.length; ++i) {
-            result[i] = Integer.valueOf(ids[i]);
+            result[i] = Integer.parseInt(ids[i]);
         }
         return result;
     }

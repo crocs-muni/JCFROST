@@ -6,6 +6,7 @@ import javacard.framework.Util;
 import javacard.security.RandomData;
 import jcfrost.jcmathlib.*;
 
+import static jcfrost.JCFROST.POINT_SIZE;
 import static jcfrost.JCFROST.secret;
 
 public class FrostSession {
@@ -70,8 +71,8 @@ public class FrostSession {
             index = storedCommitments;
             // TODO check if provided commitments match local commitments
         }
-        Util.arrayCopyNonAtomic(data, offset, commitments[storedCommitments].hiding, (short) 0, (short) 33);
-        Util.arrayCopyNonAtomic(data, (short) (offset + 33), commitments[storedCommitments].binding, (short) 0, (short) 33);
+        Util.arrayCopyNonAtomic(data, offset, commitments[storedCommitments].hiding, (short) 0, POINT_SIZE);
+        Util.arrayCopyNonAtomic(data, (short) (offset + POINT_SIZE), commitments[storedCommitments].binding, (short) 0, POINT_SIZE);
         ++storedCommitments;
     }
 
@@ -148,8 +149,17 @@ public class FrostSession {
             Util.arrayFillNonAtomic(identifierBuffer.as_byte_array(), (short) 0, (short) 31, (byte) 0); // TODO remove if zeroed array can be ensured
             identifierBuffer.as_byte_array()[31] = commitments[j].identifier;
             JCFROST.hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
-            JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
-            JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
+            if(POINT_SIZE == 65) {
+                commitments[j].hiding[0] = (byte) ((short) ((commitments[j].hiding[32] & 0xff) % 2) == 0x00 ? 2 : 3);
+                JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
+                commitments[j].hiding[0] = (byte) 0x04;
+                commitments[j].binding[0] = (byte) ((short) ((commitments[j].binding[32] & 0xff) % 2) == 0x00 ? 2 : 3);
+                JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
+                commitments[j].binding[0] = (byte) 0x04;
+            } else {
+                JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
+                JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
+            }
         }
         JCFROST.hasher.doFinal(ramArray, (short) 0, (short) 0, rhoBuffer, (short) 32);
 
@@ -161,13 +171,13 @@ public class FrostSession {
     }
 
     private void computeGroupCommitment() {
-        tmpPoint.decode(commitments[0].binding, (short) 0, (short) 33);
-        tmpPoint2.decode(commitments[0].hiding, (short) 0, (short) 33);
+        tmpPoint.decode(commitments[0].binding, (short) 0, POINT_SIZE);
+        tmpPoint2.decode(commitments[0].hiding, (short) 0, POINT_SIZE);
         tmpPoint.multAndAdd(bindingFactors[0], tmpPoint2);
         groupCommitment.copy(tmpPoint);
         for(short j = 1; j < storedCommitments; ++j) {
-            tmpPoint.decode(commitments[j].binding, (short) 0, (short) 33);
-            tmpPoint2.decode(commitments[j].hiding, (short) 0, (short) 33);
+            tmpPoint.decode(commitments[j].binding, (short) 0, POINT_SIZE);
+            tmpPoint2.decode(commitments[j].hiding, (short) 0, POINT_SIZE);
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }
