@@ -1,6 +1,4 @@
 // Merged file class by JavaPresso (https://github.com/petrs/JavaPresso) 
-// TODO: Fix 'your_package' to your real package name as necessary
-// TODO: Add 'import your_package.opencrypto.*;' to access all classes as usual
 
 package jcfrost;
 
@@ -21,7 +19,6 @@ import javacard.security.ECPublicKey;
 import javacard.security.KeyBuilder;
 import javacard.security.KeyPair;
 import javacard.security.RSAPrivateKey;
-import javacard.security.RSAPublicKey;
 import javacardx.crypto.Cipher;
 
 public class jcmathlib {
@@ -1142,6 +1139,7 @@ public class jcmathlib {
             this.pBN.from_byte_array(this.p);
             this.aBN.from_byte_array(this.a);
             this.bBN.from_byte_array(this.b);
+            this.rBN.from_byte_array(this.r);
         }
         
         /**
@@ -1651,47 +1649,14 @@ public class jcmathlib {
             value[(short) (size - 1)] = 0x02;
         }
     
+        /**
+         * Stores three in this object. Keeps previous size of this Bignat (3 is
+         * prepended with required number of zeroes).
+         */
         public void three() {
             this.zero();
             value[(short) (size - 1)] = 0x03;
         }
-    
-        public void four() {
-            this.zero();
-            value[(short) (size - 1)] = 0x04;
-        }
-    
-        public void five() {
-            this.zero();
-            value[(short) (size - 1)] = 0x05;
-        }
-    
-        public void eight() {
-            this.zero();
-            value[(short) (size - 1)] = 0x08;
-        }
-    
-        public void ten() {
-            this.zero();
-            value[(short) (size - 1)] = 0x0A;
-        }
-    
-        public void twentyfive() {
-            this.zero();
-            value[(short) (size - 1)] = 0x19;
-        }
-    
-        public void twentyseven() {
-            this.zero();
-            value[(short) (size - 1)] = 0x1B;
-        }
-    
-        public void athousand() {
-            this.zero();
-            value[(short) (size - 2)] = (byte) 0x03;
-            value[(short) (size - 1)] = (byte) 0xE8;
-        }
-    
     
         /**
          * Copies {@code other} into this. No size requirements. If {@code other}
@@ -2755,6 +2720,39 @@ public class jcmathlib {
             rm.unlock(resultBuffer2);
         }
     
+    
+        /**
+         * Performs multiplication of two BigNat x and y and stores result into this.
+         * RSA engine is used to speedup operation for large values.
+         *
+         * @param x       first value to multiply
+         * @param y       second value to multiply
+         * @param mod     modulus
+         */
+        public void mod_mult_rsa_trick(BigNat x, BigNat y, BigNat mod) {
+            this.clone(x);
+            this.mod_add(y, mod);
+            this.mod_exp2(mod);
+    
+            BigNat tmp = rm.BN_D;
+            tmp.lock();
+            tmp.clone(x);
+            tmp.mod_exp2(mod);
+            this.mod_sub(tmp, mod);
+    
+            tmp.clone(y);
+            tmp.mod_exp2(mod);
+            this.mod_sub(tmp, mod);
+            tmp.unlock();
+    
+            boolean carry = false;
+            if(this.is_odd()) {
+                carry = this.add_carry(mod);
+            }
+    
+            this.divide_by_2(carry ? (short) (1 << 7) : (short) 0);
+        }
+    
         /**
          * Multiplication of bignats x and y computed by modulo {@code modulo}.
          * The result is stored to this.
@@ -2764,15 +2762,18 @@ public class jcmathlib {
          * @param modulo value of modulo
          */
         public void mod_mult(BigNat x, BigNat y, BigNat modulo) {
-            BigNat tmp = rm.BN_E; // mod_mult is called from sqrt_FP => requires helper_BN_E not being locked when mod_mult is called
+            BigNat tmp = rm.BN_E; // mod_mult is called from sqrt_FP => requires BN_E not being locked when mod_mult is called
     
             tmp.lock();
-            tmp.resize_to_max(false);
             // Perform fast multiplication using RSA trick
-            tmp.mult(x, y);
-            // Compute modulo 
-            tmp.mod(modulo);
-            tmp.shrink();
+            if(OperationSupport.getInstance().RSA_MULT_TRICK) {
+                tmp.mod_mult_rsa_trick(x, y, modulo);
+            } else {
+                tmp.resize_to_max(false);
+                tmp.mult(x, y);
+                tmp.mod(modulo);
+                tmp.shrink();
+            }
             this.clone(tmp);
             tmp.unlock();
         }
@@ -2792,12 +2793,13 @@ public class jcmathlib {
         }
     
         /**
-         * Optimized division by value two
+         * Optimized division by value two with carry
+         *
+         * @param carry XORed into the highest byte
          */
-        private void divide_by_2() {
+        private void divide_by_2(short carry) {
             short tmp = 0;
             short tmp2 = 0;
-            short carry = 0;
             for (short i = 0; i < this.size; i++) {
                 tmp = (short) (this.value[i] & 0xff);
                 tmp2 = tmp;
@@ -2809,68 +2811,11 @@ public class jcmathlib {
         }
     
         /**
-         * Inefficient modular multiplication.
-         * <p>
-         * This bignat is assigned to {@code x * y} modulo {@code mod}. Inefficient,
-         * because it computes the modules with {@link #remainder_divide
-         * remainder_divide} in each multiplication round. To avoid overflow the
-         * first two digits of {@code x} and {@code mod} must be zero (which plays
-         * nicely with the requirements for montgomery multiplication, see
-         * {@link #montgomery_mult montgomery_mult}).
-         * <p>
-         * Asserts that {@code x} and {@code mod} have the same size. Argument
-         * {@code y} can be arbitrary in size.
-         * <p>
-         * Included here to make it possible to compute the squared <a
-         * href="package-summary.html#montgomery_factor">montgomery factor</a>,
-         * which is needed to montgomerize numbers before montgomery multiplication.
-         * Until now this has never been used, because the montgomery factors are
-         * computed on the host and then installed on the card. Or numbers are
-         * montgomerized on the host already.
-         *
-         * @param x   first factor, first two digits must be zero
-         * @param y   second factor
-         * @param mod modulus, first two digits must be zero
+         * Optimized division by value two
          */
-        public void mod_mult_inefficient(BigNat x, BigNat y, BigNat mod) {
-            BigNat tmp = rm.BN_A;
-            BigNat tmpMod = rm.BN_B;
-            BigNat tmpX = rm.BN_C;
-    
-            short len = 0;
-            if (x.length() >= mod.length()) {
-                len = x.length();
-            } else {
-                len = mod.length();
-            }
-    
-            short magicAdd = 2;
-            tmpX.lock();
-            tmpX.set_size((short) (len + magicAdd));
-            tmpX.copy(x);
-    
-            tmpMod.lock();
-            tmpMod.set_size((short) (len + magicAdd));
-            tmpMod.copy(mod);
-    
-            tmp.lock();
-            tmp.set_size((short) (this.length() + magicAdd));
-            tmp.zero();
-            for (short i = 0; i < y.size; i++) {
-                tmp.shift_left();
-                tmp.times_add(tmpX, (short) (y.value[i] & digit_mask));
-                tmp.remainder_divide(tmpMod, null);
-            }
-            tmpX.unlock();
-            tmpMod.unlock();
-    
-            tmp.shrink();
-            this.clone(tmp);
-            tmp.unlock();
+        private void divide_by_2() {
+            divide_by_2((short) 0);
         }
-    
-    
-        //
     
         /**
          * Computes square root of provided bignat which MUST be prime using Tonelli
@@ -2906,7 +2851,11 @@ public class jcmathlib {
     
             while (!tmp.same_value(q)) {
                 s.increment_one();
-                tmp.mod_mult(s, q, p);
+                // TODO investigate why just mod_mult(s, q, p) does not work (apart from locks)
+                tmp.resize_to_max(false);
+                tmp.mult(s, q);
+                tmp.mod(p);
+                tmp.shrink();
             }
             tmp.unlock();
             s.unlock();
@@ -2982,7 +2931,7 @@ public class jcmathlib {
             if (!OperationSupport.getInstance().RSA_MOD_EXP)
                 ISOException.throwIt(ReturnCodes.SW_OPERATION_NOT_SUPPORTED);
     
-            BigNat tmpMod = rm.BN_F;  // mod_exp is called from sqrt_FP => requires helper_BN_F not being locked when mod_exp is called
+            BigNat tmpMod = rm.BN_F;  // mod_exp is called from sqrt_FP => requires BN_F not being locked when mod_exp is called
             byte[] tmpBuffer = rm.ARRAY_A;
             short tmpSize = (short) (rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS / 8);
             short modLength;
@@ -3034,7 +2983,6 @@ public class jcmathlib {
                     ISOException.throwIt(ReturnCodes.SW_ECPOINT_UNEXPECTED_KA_LEN);
                 }
             }
-            tmpMod.mod(modulo);
             tmpMod.shrink();
             this.clone(tmpMod);
             tmpMod.unlock();
@@ -3043,44 +2991,6 @@ public class jcmathlib {
     
         public void mod_exp2(BigNat modulo) {
             mod_exp(ResourceManager.TWO, modulo);
-            //this.pow2Mod_RSATrick(modulo);
-    /*        
-            short tmp_size = (short) (occ.bnHelper.MOD_RSA_LENGTH / 8);
-            
-            // Idea: a = this with prepended zeroes, b = this with appended zeroes, modulo with appended zeroes
-            // Compute mult_RSATrick
-            this.prependzeros(tmp_size, occ.bnHelper.helper_BN_A.as_byte_array(), (short) 0);
-            occ.bnHelper.helper_BN_A.setSize(tmp_size);
-            this.appendzeros(tmp_size, occ.bnHelper.helper_BN_B.as_byte_array(), (short) 0);
-            occ.bnHelper.helper_BN_B.setSize(tmp_size);
-    
-            mult_RSATrick(occ.bnHelper.helper_BN_A, occ.bnHelper.helper_BN_B);
-            
-            // We will use prepared engine with exponent=2 and very large modulus (instead of provided modulus)
-            // The reason is to avoid need for setting custom modulus and re-init RSA engine
-            // Mod operation is computed later 
-            occ.bnHelper.modPublicKey.setExponent(occ.bnHelper.CONST_TWO, (short) 0, (short) 1);
-            occ.locker.lock(occ.bnHelper.fastResizeArray);
-            modulo.appendzeros(tmp_size, occ.bnHelper.fastResizeArray, (short) 0);
-            // NOTE: ideally, we would just set RSA engine modulus to our modulo. But smallest RSA key is 512 bit while 
-            // our values are commonly smaller (e.g., 32B for 256b ECC). Prepending leading zeroes will cause 0xf105 (CryptoException.InvalidUse)
-            //modulo.prependzeros(tmp_size, occ.bnHelper.fastResizeArray, (short) 0);
-            occ.bnHelper.modPublicKey.setModulus(occ.bnHelper.fastResizeArray, (short) 0, tmp_size);
-            occ.bnHelper.modCipher.init(occ.bnHelper.modPublicKey, Cipher.MODE_DECRYPT);
-            this.prependzeros(tmp_size, occ.bnHelper.fastResizeArray, (short) 0);
-            occ.bnHelper.modCipher.doFinal(occ.bnHelper.fastResizeArray, (byte) 0, tmp_size, occ.bnHelper.fastResizeArray, (short) 0);
-            occ.locker.unlock(occ.bnHelper.fastResizeArray);
-    
-            // We used RSA engine with large modulo => some leading values will be zero (|this^2| <= 2*|this|)
-            short startOffset = 0; // Find first nonzero value in resulting buffer
-            while (occ.bnHelper.fastResizeArray[startOffset] == 0) {
-                startOffset++;
-            }
-            short len = (short) (tmp_size - startOffset);
-            this.setSize(len);
-            this.from_byte_array(len, (short) 0, occ.bnHelper.fastResizeArray, startOffset);
-            occ.locker.unlock(occ.bnHelper.fastResizeArray);
-    */
         }
     
         /**
@@ -3171,383 +3081,6 @@ public class jcmathlib {
         }
     }
     
-    
-    /**
-     * @author Vasilios Mavroudis and Petr Svenda
-     */
-    public static class Integer {
-        private ResourceManager rm;
-        private BigNat magnitude;
-        private byte sign;
-    
-        /**
-         * Allocates integer with provided length and sets to zero.
-         *
-         * @param size
-         * @param bnh  Bignat_Helper with all supporting objects
-         */
-        public Integer(short size, ResourceManager rm) {
-            allocate(size, (byte) 0, null, (byte) -1, rm);
-        }
-    
-        /**
-         * Allocates integer from provided buffer and initialize by provided value.
-         * Sign is expected as first byte of value.
-         *
-         * @param value       array with initial value
-         * @param valueOffset start offset within   value
-         * @param length      length of array
-         * @param bnh         BignatHelper with all supporting objects
-         */
-        public Integer(byte[] value, short valueOffset, short length, ResourceManager rm) {
-            allocate(length, (value[valueOffset] == (byte) 0x00) ? (byte) 0 : (byte) 1, value, (short) (valueOffset + 1), rm);
-        }
-    
-        /**
-         * Allocates integer from provided array with explicit sign. No sign is expected in provided array.
-         *
-         * @param sign  sign of integer
-         * @param value array with initial value
-         * @param bnh   Bignat_Helper with all supporting objects
-         */
-        public Integer(byte sign, byte[] value, ResourceManager rm) {
-            allocate((short) value.length, sign, value, (short) 0, rm);
-        }
-    
-        /**
-         * Copy constructor of integer from other already existing value
-         *
-         * @param other integer to copy from
-         */
-        public Integer(Integer other) {
-            allocate(other.getSize(), other.getSign(), other.getMagnitude_b(), (short) 0, other.rm);
-        }
-    
-        /**
-         * Creates integer from existing Bignat and provided sign. If required,
-         * copy is performed, otherwise BigNat is used as magnitude.
-         *
-         * @param sign      sign of integer
-         * @param magnitude initial magnitude
-         * @param copy      if true, magnitude is directly used (no copy). If false, new storage array is allocated.
-         */
-        public Integer(byte sign, BigNat magnitude, boolean copy, ResourceManager rm) {
-            if (copy) {
-                // Copy from provided BigNat
-                allocate(magnitude.length(), sign, magnitude.as_byte_array(), (short) 0, rm);
-            } else {
-                // Use directly provided BigNat as storage - no allocation
-                initialize(sign, magnitude, rm);
-            }
-        }
-    
-        /**
-         * Initialize integer object with provided sign and already allocated Bignat
-         * as magnitude
-         *
-         * @param sign      sign of integer
-         * @param bnStorage magnitude (object is directly used, no copy is performed)
-         */
-        private void initialize(byte sign, BigNat bnStorage, ResourceManager rm) {
-            this.sign = sign;
-            this.magnitude = bnStorage;
-            this.rm = rm;
-        }
-    
-        /**
-         * Allocates and initializes Integer.
-         *
-         * @param size            length of integer
-         * @param sign            sign of integer
-         * @param fromArray       input array with initial value (copy of value is
-         *                        performed)
-         * @param fromArrayOffset start offset within fromArray
-         */
-        private void allocate(short size, byte sign, byte[] fromArray, short fromArrayOffset, ResourceManager rm) {
-            this.rm = rm;
-            BigNat mag = new BigNat(size, JCSystem.MEMORY_TYPE_TRANSIENT_RESET, this.rm);
-            if (fromArray != null) {
-                mag.from_byte_array(size, (short) 0, fromArray, fromArrayOffset);
-            }
-            initialize(sign, mag, this.rm);
-        }
-    
-        /**
-         * Clone value into this Integer from other Integer. Updates size of integer.
-         *
-         * @param other other integer to copy from
-         */
-        public void clone(Integer other) {
-            this.sign = other.getSign();
-            this.magnitude.copy(other.getMagnitude());
-        }
-    
-        /**
-         * set this integer to zero
-         */
-        public void zero() {
-            this.sign = (short) 0;
-            this.magnitude.zero();
-        }
-    
-        /**
-         * Return sign of this integer
-         *
-         * @return current sign
-         */
-        public byte getSign() {
-            return this.sign;
-        }
-    
-        /**
-         * Set sign of this integer
-         *
-         * @param s new sign
-         */
-        public void setSign(byte s) {
-            this.sign = s;
-        }
-    
-        /**
-         * Return length (in bytes) of this integer
-         *
-         * @return length of this integer
-         */
-        public short getSize() {
-            return this.magnitude.length();
-        }
-    
-        /**
-         * Set length of this integer
-         *
-         * @param newSize new length
-         */
-        public void setSize(short newSize) {
-            this.magnitude.set_size(newSize);
-        }
-    
-        /**
-         * Compute negation of this integer
-         */
-        public void negate() {
-            if (this.isPositive()) {
-                this.setSign((byte) 1);
-            } else if (this.isNegative()) {
-                this.setSign((byte) 0);
-            }
-        }
-    
-        /**
-         * Returns internal array as byte array. No copy is performed so change of
-         * values in array also changes this integer
-         *
-         * @return byte array with magnitude
-         */
-        public byte[] getMagnitude_b() {
-            return this.magnitude.as_byte_array();
-        }
-    
-        /**
-         * Returns magnitude as Bignat. No copy is performed so change of Bignat also changes this integer
-         *
-         * @return Bignat representing magnitude
-         */
-        public BigNat getMagnitude() {
-            return this.magnitude;
-        }
-    
-        /**
-         * Set magnitude of this integer from other one. Will not change this integer length.
-         * No sign is copied from other.
-         *
-         * @param other other integer to copy from
-         */
-        public void setMagnitude(Integer other) {
-            this.magnitude.copy(other.getMagnitude());
-        }
-    
-        /**
-         * Serializes this integer value into array. Sign is serialized as first byte
-         *
-         * @param outBuffer       output array
-         * @param outBufferOffset start offset within output array
-         * @return length of resulting serialized number including sign (number of bytes)
-         */
-        public short toByteArray(byte[] outBuffer, short outBufferOffset) {
-            //Store sign
-            outBuffer[outBufferOffset] = sign;
-            //Store magnitude
-            Util.arrayCopyNonAtomic(this.getMagnitude_b(), (short) 0, outBuffer, (short) (outBufferOffset + 1), this.getSize());
-            return (short) (this.getSize() + 1);
-        }
-    
-        /**
-         * Deserialize value of this integer from provided array including sign.
-         * Sign is expected to be as first byte
-         *
-         * @param value       array with value
-         * @param valueOffset start offset within value
-         * @param valueLength length of value
-         */
-        public void fromByteArray(byte[] value, short valueOffset, short valueLength) {
-            //Store sign
-            this.sign = value[valueOffset];
-            //Store magnitude
-            this.magnitude.from_byte_array((short) (valueLength - 1), (short) 0, value, (short) (valueOffset + 1));
-        }
-    
-        /**
-         * Return true if integer is negative.
-         *
-         * @return true if integer is negative, false otherwise
-         */
-        public boolean isNegative() {
-            return this.sign == 1;
-        }
-    
-        /**
-         * Return true if integer is positive.
-         *
-         * @return true if integer is positive, false otherwise
-         */
-        public boolean isPositive() {
-            return this.sign == 0;
-        }
-    
-        /**
-         * Compares two integers. Return true, if this is smaller than other.
-         *
-         * @param other other integer to compare
-         * @return true, if this is strictly smaller than other. False otherwise.
-         */
-        public boolean lesser(Integer other) {
-            if (this.sign == 1 && other.sign == 0) {
-                return true;
-            } else if (this.sign == 0 && other.sign == 1) {
-                return false;
-            } else if ((this.sign == 0 && other.sign == 0)) {
-                return this.magnitude.lesser(other.magnitude);
-            } else { //if ((this.sign == 1 && other.sign==1))
-                return (!this.magnitude.lesser(other.magnitude));
-            }
-        }
-    
-        /**
-         * Add other integer to this and store result into this.
-         *
-         * @param other other integer to add
-         */
-        public void add(Integer other) {
-            BigNat tmp = rm.BN_A;
-    
-            if (this.isPositive() && other.isPositive()) { //this and other are (+)
-                this.sign = 0;
-                this.magnitude.add(other.magnitude);
-            } else if (this.isNegative() && other.isNegative()) { //this and other are (-)
-                this.sign = 1;
-                this.magnitude.add(other.magnitude);
-            } else {
-                if (this.isPositive() && other.getMagnitude().lesser(this.getMagnitude())) { //this(+) is larger than other(-)
-                    this.sign = 0;
-                    this.magnitude.subtract(other.magnitude);
-                } else if (this.isNegative() && other.getMagnitude().lesser(this.getMagnitude())) {    //this(-) has larger magnitude than other(+)
-                    this.sign = 1;
-                    this.magnitude.subtract(other.magnitude);
-                } else if (this.isPositive() && this.getMagnitude().lesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
-                    this.sign = 1;
-                    tmp.lock();
-                    tmp.clone(other.getMagnitude());
-                    tmp.subtract(this.magnitude);
-                    this.magnitude.copy(tmp);
-                    tmp.unlock();
-                } else if (this.isNegative() && this.getMagnitude().lesser(other.getMagnitude())) {  //this(-) has larger magnitude than other(+)
-                    this.sign = 0;
-                    tmp.lock();
-                    tmp.clone(other.getMagnitude());
-                    tmp.subtract(this.magnitude);
-                    this.magnitude.copy(tmp);
-                    tmp.unlock();
-                } else if (this.getMagnitude().same_value(other.getMagnitude())) {  //this has opposite sign than other, and the same magnitude
-                    this.sign = 0;
-                    this.zero();
-                }
-            }
-        }
-    
-        /**
-         * Substract other integer from this and store result into this.
-         *
-         * @param other other integer to substract
-         */
-        public void subtract(Integer other) {
-            other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
-            this.add(other);
-            // Restore original sign for other
-            other.negate();
-        }
-    
-        /**
-         * Multiply this and other integer and store result into this.
-         *
-         * @param other other integer to multiply
-         */
-        public void multiply(Integer other) {
-            BigNat mod = rm.BN_A;
-            BigNat tmp = rm.BN_B;
-    
-            if (this.isPositive() && other.isNegative()) {
-                this.setSign((byte) 1);
-            } else if (this.isNegative() && other.isPositive()) {
-                this.setSign((byte) 1);
-            } else {
-                this.setSign((byte) 0);
-            }
-    
-            // Make mod BN as maximum value (positive, leading 0x80)
-            mod.lock();
-            mod.set_size(this.magnitude.length());
-            mod.zero();
-            mod.as_byte_array()[0] = (byte) 0x80;  // Max INT+1 Value
-    
-            tmp.lock();
-            tmp.set_size(this.magnitude.length());
-            tmp.mod_mult(this.getMagnitude(), other.getMagnitude(), mod);
-            this.magnitude.copy(tmp);
-            mod.unlock();
-            tmp.unlock();
-        }
-    
-        /**
-         * Divide this by other integer and store result into this.
-         *
-         * @param other divisor
-         */
-        public void divide(Integer other) {
-            BigNat tmp = rm.BN_A;
-    
-            if (this.isPositive() && other.isNegative()) {
-                this.setSign((byte) 1);
-            } else if (this.isNegative() && other.isPositive()) {
-                this.setSign((byte) 1);
-            } else {
-                this.setSign((byte) 0);
-            }
-    
-            tmp.lock();
-            tmp.clone(this.magnitude);
-            tmp.remainder_divide(other.getMagnitude(), this.magnitude);
-            tmp.unlock();
-        }
-    
-        /**
-         * Computes modulo of this by other integer and store result into this.
-         *
-         * @param other modulus
-         */
-        public void modulo(Integer other) {
-            this.magnitude.mod(other.getMagnitude());
-        }
-    }
 
     /**
      * @author Petr Svenda
