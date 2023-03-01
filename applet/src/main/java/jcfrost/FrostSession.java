@@ -114,9 +114,24 @@ public class FrostSession {
     }
 
     private void computeLambda() {
-        numerator.one();
-        denominator.one();
-        for(short j = 0; j < storedCommitments; ++j) {
+        short j;
+        if(index != (short) 0) {
+            identifierBuffer.as_byte_array()[31] = commitments[0].identifier;
+            numerator.clone(identifierBuffer);
+            denominator.clone(identifierBuffer);
+            identifierBuffer.as_byte_array()[31] = commitments[index].identifier;
+            denominator.mod_sub(identifierBuffer, JCFROST.curve.rBN);
+            j = 1;
+        } else {
+            identifierBuffer.as_byte_array()[31] = commitments[1].identifier;
+            numerator.clone(identifierBuffer);
+            denominator.clone(identifierBuffer);
+            identifierBuffer.as_byte_array()[31] = commitments[index].identifier;
+            denominator.mod_sub(identifierBuffer, JCFROST.curve.rBN);
+            j = 2;
+        }
+
+        for(; j < storedCommitments; ++j) {
             if(j == index) {
                 continue;
             }

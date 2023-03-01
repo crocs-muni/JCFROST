@@ -8,7 +8,6 @@ import jcfrost.JCFROST;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.math.ec.ECCurve;
 import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
