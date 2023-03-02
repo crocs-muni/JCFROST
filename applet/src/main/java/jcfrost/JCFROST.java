@@ -4,7 +4,7 @@ import javacard.framework.*;
 import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
-public class JCFROST extends Applet {
+public class JCFROST extends Applet implements MultiSelectable {
     public final static boolean DEBUG = false;
     public final static short POINT_SIZE = 65;
     public final static byte[] DEBUG_RANDOMNESS = new byte[64];
@@ -97,7 +97,10 @@ public class JCFROST extends Applet {
     }
 
     public boolean select(boolean b) {
-        ecc.refreshAfterReset();
+        if(initialized) {
+            curve.updateAfterReset();
+            ecc.refreshAfterReset();
+        }
         return true;
     }
 

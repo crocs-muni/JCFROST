@@ -1,19 +1,9 @@
-// Merged file class by JavaPresso (https://github.com/petrs/JavaPresso) 
-
 package jcfrost;
 
-import javacard.framework.APDU;
-import javacard.framework.Applet;
-import javacard.framework.CardRuntimeException;
-import javacard.framework.ISO7816;
 import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
-import javacard.framework.PINException;
-import javacard.framework.SystemException;
-import javacard.framework.TransactionException;
 import javacard.framework.Util;
 import javacard.security.*;
-import javacard.security.CryptoException;
 import javacard.security.ECPrivateKey;
 import javacard.security.ECPublicKey;
 import javacard.security.KeyBuilder;
@@ -22,7 +12,6 @@ import javacard.security.RSAPrivateKey;
 import javacardx.crypto.Cipher;
 
 public class jcmathlib {
-
     
     /**
      *
@@ -114,10 +103,8 @@ public class jcmathlib {
             }
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-            rm.lock(pointBuffer);
             short len = other.getW(pointBuffer, (short) 0);
             setW(pointBuffer, (short) 0, len);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -175,10 +162,8 @@ public class jcmathlib {
         public short getX(byte[] buffer, short offset) {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-            rm.lock(pointBuffer);
             point.getW(pointBuffer, (short) 0);
             Util.arrayCopyNonAtomic(pointBuffer, (short) 1, buffer, offset, curve.COORD_SIZE);
-            rm.unlock(pointBuffer);
             return curve.COORD_SIZE;
         }
     
@@ -192,10 +177,8 @@ public class jcmathlib {
         public short getY(byte[] buffer, short offset) {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-            rm.lock(pointBuffer);
             point.getW(pointBuffer, (short) 0);
             Util.arrayCopyNonAtomic(pointBuffer, (short) (1 + curve.COORD_SIZE), buffer, offset, curve.COORD_SIZE);
-            rm.unlock(pointBuffer);
             return curve.COORD_SIZE;
         }
     
@@ -218,21 +201,16 @@ public class jcmathlib {
             BigNat lambda = rm.EC_BN_D;
             BigNat tmp = rm.EC_BN_E;
     
-            rm.lock(pointBuffer);
             getW(pointBuffer, (short) 0);
     
-            pX.lock();
             pX.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) 1);
     
-            pY.lock();
             pY.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) (1 + curve.COORD_SIZE));
     
-            lambda.lock();
             lambda.mod_mult(pX, pX, curve.pBN);
             lambda.mod_mult(lambda, ResourceManager.THREE, curve.pBN);
             lambda.mod_add(curve.aBN, curve.pBN);
     
-            tmp.lock();
             tmp.clone(pY);
             tmp.mod_add(tmp, curve.pBN);
             tmp.mod_inv(curve.pBN);
@@ -243,17 +221,12 @@ public class jcmathlib {
             tmp.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
     
             tmp.mod_sub(pX, curve.pBN);
-            pX.unlock();
             tmp.mod_mult(tmp, lambda, curve.pBN);
-            lambda.unlock();
             tmp.mod_add(pY, curve.pBN);
             tmp.mod_negate(curve.pBN);
-            pY.unlock();
             tmp.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            tmp.unlock();
     
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-            rm.unlock(pointBuffer);
         }
     
     
@@ -302,15 +275,11 @@ public class jcmathlib {
             BigNat denominator = rm.EC_BN_C;
             BigNat lambda = rm.EC_BN_A;
     
-            rm.lock(pointBuffer);
             point.getW(pointBuffer, (short) 0);
-            xP.lock();
             xP.set_size(curve.COORD_SIZE);
             xP.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) 1);
-            yP.lock();
             yP.set_size(curve.COORD_SIZE);
             yP.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            rm.unlock(pointBuffer);
     
     
             // l = (y_q-y_p)/(x_q-x_p))
@@ -318,8 +287,6 @@ public class jcmathlib {
             // y_r = l(x_p-x_r)-y_p
     
             // P + Q = R
-            nominator.lock();
-            denominator.lock();
             if (samePoint) {
                 // lambda = (3(x_p^2)+a)/(2y_p)
                 // (3(x_p^2)+a)
@@ -334,14 +301,11 @@ public class jcmathlib {
     
             } else {
                 // lambda = (y_q-y_p) / (x_q-x_p) mod p
-                rm.lock(pointBuffer);
                 other.point.getW(pointBuffer, (short) 0);
-                xQ.lock();
                 xQ.set_size(curve.COORD_SIZE);
                 xQ.from_byte_array(other.curve.COORD_SIZE, (short) 0, pointBuffer, (short) 1);
                 nominator.set_size(curve.COORD_SIZE);
                 nominator.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) (1 + curve.COORD_SIZE));
-                rm.unlock(pointBuffer);
     
                 nominator.mod(curve.pBN);
     
@@ -354,18 +318,14 @@ public class jcmathlib {
                 denominator.mod_inv(curve.pBN);
             }
     
-            lambda.lock();
             lambda.resize_to_max(false);
             lambda.zero();
             lambda.mod_mult(nominator, denominator, curve.pBN);
-            nominator.unlock();
-            denominator.unlock();
     
             // (x_p, y_p) + (x_q, y_q) = (x_r, y_r)
             // lambda = (y_q - y_p) / (x_q - x_p)
     
             // x_r = lambda^2 - x_p - x_q
-            xR.lock();
             if (samePoint) {
                 short len = multXKA(ResourceManager.TWO, xR.as_byte_array(), (short) 0);
                 xR.set_size(len);
@@ -375,27 +335,18 @@ public class jcmathlib {
                 xR.mod_sub(xP, curve.pBN);
                 xR.mod_sub(xQ, curve.pBN);
             }
-            xQ.unlock();
     
             // y_r = lambda(x_p - x_r) - y_p
-            yR.lock();
             yR.clone(xP);
-            xP.unlock();
             yR.mod_sub(xR, curve.pBN);
             yR.mod_mult(yR, lambda, curve.pBN);
-            lambda.unlock();
             yR.mod_sub(yP, curve.pBN);
-            yP.unlock();
     
-            rm.lock(pointBuffer);
             pointBuffer[0] = (byte) 0x04;
             // If x_r.length() and y_r.length() is smaller than curve.COORD_SIZE due to leading zeroes which were shrunk before, then we must add these back
             xR.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
-            xR.unlock();
             yR.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            yR.unlock();
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -406,9 +357,7 @@ public class jcmathlib {
         private void hwAdd(ECPoint other) {
             byte[] pointBuffer = rm.POINT_ARRAY_B;
     
-            rm.lock(pointBuffer);
             setW(pointBuffer, (short) 0, multAndAddKA(ResourceManager.ONE_COORD, other, pointBuffer, (short) 0));
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -419,11 +368,9 @@ public class jcmathlib {
         public void multiplication(byte[] scalarBytes, short scalarOffset, short scalarLen) {
             BigNat scalar = rm.EC_BN_F;
     
-            scalar.lock();
             scalar.set_size(scalarLen);
             scalar.from_byte_array(scalarLen, (short) 0, scalarBytes, scalarOffset);
             multiplication(scalar);
-            scalar.unlock();
         }
     
         /**
@@ -457,9 +404,7 @@ public class jcmathlib {
             }
             byte[] pointBuffer = rm.POINT_ARRAY_B;
     
-            rm.lock(pointBuffer);
             setW(pointBuffer, (short) 0, multAndAddKA(scalar, point, pointBuffer, (short) 0));
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -473,7 +418,6 @@ public class jcmathlib {
         private short multAndAddKA(BigNat scalar, ECPoint point, byte[] outBuffer, short outBufferOffset) {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-            rm.lock(pointBuffer);
             short len = this.getW(pointBuffer, (short) 0);
             curve.disposable_priv.setG(pointBuffer, (short) 0, len);
             curve.disposable_priv.setS(scalar.as_byte_array(), (short) 0, scalar.length());
@@ -481,7 +425,6 @@ public class jcmathlib {
     
             len = point.getW(pointBuffer, (short) 0);
             len = rm.ecAddKA.generateSecret(pointBuffer, (short) 0, len, outBuffer, outBufferOffset);
-            rm.unlock(pointBuffer);
             return len;
         }
     
@@ -493,10 +436,8 @@ public class jcmathlib {
         public void multXY(BigNat scalar) {
             byte[] pointBuffer = rm.POINT_ARRAY_B;
     
-            rm.lock(pointBuffer);
             short len = multXYKA(scalar, pointBuffer, (short) 0);
             setW(pointBuffer, (short) 0, len);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -515,10 +456,8 @@ public class jcmathlib {
             curve.disposable_priv.setS(scalar.as_byte_array(), (short) 0, scalar.length());
             rm.ecMultKA.init(curve.disposable_priv);
     
-            rm.lock(pointBuffer);
             short len = getW(pointBuffer, (short) 0);
             len = rm.ecMultKA.generateSecret(pointBuffer, (short) 0, len, outBuffer, outBufferOffset);
-            rm.unlock(pointBuffer);
             return len;
         }
     
@@ -535,45 +474,33 @@ public class jcmathlib {
             BigNat y1 = rm.EC_BN_D;
             BigNat y2 = rm.EC_BN_B;
     
-            x.lock();
             short len = multXKA(scalar, x.as_byte_array(), (short) 0);
             x.set_size(len);
     
             //Y^2 = X^3 + XA + B = x(x^2+A)+B
-            ySq.lock();
             ySq.clone(x);
             ySq.mod_exp(ResourceManager.TWO, curve.pBN);
             ySq.mod_add(curve.aBN, curve.pBN);
             ySq.mod_mult(ySq, x, curve.pBN);
             ySq.mod_add(curve.bBN, curve.pBN);
-            y1.lock();
             y1.clone(ySq);
-            ySq.unlock();
             y1.sqrt_FP(curve.pBN);
     
             // Construct public key with <x, y_1>
-            rm.lock(pointBuffer);
             pointBuffer[0] = 0x04;
             x.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
-            x.unlock();
             y1.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
             setW(pointBuffer, (short) 0, curve.POINT_SIZE); //So that we can convert to pub key
     
             // Check if public point <x, y_1> corresponds to the "secret" (i.e., our scalar)
-            rm.lock(resultBuffer);
             if (!SignVerifyECDSA(curve.bignatAsPrivateKey(scalar), asPublicKey(), rm.verifyEcdsa, resultBuffer)) { // If verification fails, then pick the <x, y_2>
-                y2.lock();
                 y2.clone(curve.pBN); // y_2 = p - y_1
                 y2.mod_sub(y1, curve.pBN);
                 y2.copy_to_buffer(pointBuffer, (short) (1 + curve.COORD_SIZE));
-                y2.unlock();
             }
-            rm.unlock(resultBuffer);
-            y1.unlock();
     
     
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -593,11 +520,9 @@ public class jcmathlib {
     
             rm.ecMultKA.init(curve.disposable_priv);
     
-            rm.lock(pointBuffer);
             short len = getW(pointBuffer, (short) 0);
             len = rm.ecMultKA.generateSecret(pointBuffer, (short) 0, len, outBuffer, outBufferOffset);
-            rm.unlock(pointBuffer);
-            // Return always length of whole coordinate X instead of len - some real cards returns shorter value equal to SHA-1 output size although PLAIN results is filled into buffer (GD60) 
+            // Return always length of whole coordinate X instead of len - some real cards returns shorter value equal to SHA-1 output size although PLAIN results is filled into buffer (GD60)
             return curve.COORD_SIZE;
         }
     
@@ -609,16 +534,12 @@ public class jcmathlib {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
             BigNat y = rm.EC_BN_C;
     
-            y.lock();
-            rm.lock(pointBuffer);
             point.getW(pointBuffer, (short) 0);
             y.set_size(curve.COORD_SIZE);
             y.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) (1 + curve.COORD_SIZE));
             y.mod_negate(curve.pBN);
             y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            y.unlock();
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -631,11 +552,9 @@ public class jcmathlib {
         public void fromX(byte[] xCoord, short xOffset, short xLen) {
             BigNat x = rm.EC_BN_F;
     
-            x.lock();
             x.set_size(xLen);
             x.from_byte_array(xLen, (short) 0, xCoord, xOffset);
             fromX(x);
-            x.unlock();
         }
     
         /**
@@ -649,25 +568,19 @@ public class jcmathlib {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
             //Y^2 = X^3 + XA + B = x(x^2+A)+B
-            y_sq.lock();
             y_sq.clone(x);
             y_sq.mod_exp(ResourceManager.TWO, curve.pBN);
             y_sq.mod_add(curve.aBN, curve.pBN);
             y_sq.mod_mult(y_sq, x, curve.pBN);
             y_sq.mod_add(curve.bBN, curve.pBN);
-            y.lock();
             y.clone(y_sq);
-            y_sq.unlock();
             y.sqrt_FP(curve.pBN);
     
             // Construct public key with <x, y_1>
-            rm.lock(pointBuffer);
             pointBuffer[0] = 0x04;
             x.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
             y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            y.unlock();
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-            rm.unlock(pointBuffer);
         }
     
         /**
@@ -678,10 +591,8 @@ public class jcmathlib {
         public boolean isYEven() {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-            rm.lock(pointBuffer);
             point.getW(pointBuffer, (short) 0);
             boolean result = pointBuffer[(short) (curve.POINT_SIZE - 1)] % 2 == 0;
-            rm.unlock(pointBuffer);
             return result;
         }
     
@@ -701,15 +612,11 @@ public class jcmathlib {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
             byte[] hashBuffer = rm.HASH_ARRAY;
     
-            rm.lock(pointBuffer);
-            rm.lock(hashBuffer);
             short len = getW(pointBuffer, (short) 0);
             rm.hashEngine.doFinal(pointBuffer, (short) 0, len, hashBuffer, (short) 0);
             len = other.getW(pointBuffer, (short) 0);
             len = rm.hashEngine.doFinal(pointBuffer, (short) 0, len, pointBuffer, (short) 0);
             boolean bResult = Util.arrayCompare(hashBuffer, (short) 0, pointBuffer, (short) 0, len) == 0;
-            rm.unlock(hashBuffer);
-            rm.unlock(pointBuffer);
     
             return bResult;
         }
@@ -744,11 +651,9 @@ public class jcmathlib {
                 BigNat p = rm.EC_BN_E;
                 byte[] pointBuffer = rm.POINT_ARRAY_A;
     
-                x.lock();
                 x.from_byte_array(curve.COORD_SIZE, (short) 0, point, (short) (offset + 1));
     
                 //Y^2 = X^3 + XA + B = x(x^2+A)+B
-                y.lock();
                 y.clone(x);
                 y.mod_exp(ResourceManager.TWO, curve.pBN);
                 y.mod_add(curve.aBN, curve.pBN);
@@ -756,12 +661,9 @@ public class jcmathlib {
                 y.mod_add(curve.bBN, curve.pBN);
                 y.sqrt_FP(curve.pBN);
     
-                rm.lock(pointBuffer);
                 pointBuffer[0] = 0x04;
                 x.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) 1);
-                x.unlock();
     
-                p.lock();
                 byte parity = (byte) ((y.as_byte_array()[(short) (curve.COORD_SIZE - 1)] & 0xff) % 2);
                 if ((parity == 0 && point[offset] != (byte) 0x02) || (parity == 1 && point[offset] != (byte) 0x03)) {
                     p.from_byte_array(curve.p);
@@ -770,10 +672,7 @@ public class jcmathlib {
                 } else {
                     y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (curve.COORD_SIZE + 1));
                 }
-                y.unlock();
-                p.unlock();
                 setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-                rm.unlock(pointBuffer);
                 return true;
             }
             ISOException.throwIt(ReturnCodes.SW_ECPOINT_INVALID);
@@ -802,19 +701,15 @@ public class jcmathlib {
                 BigNat y = rm.EC_BN_C;
                 BigNat x = rm.EC_BN_D;
                 BigNat p = rm.EC_BN_E;
-                x.lock();
                 x.from_byte_array(curve.COORD_SIZE, (short) 0, output, (short) (offset + 1));
     
                 //Y^2 = X^3 + XA + B = x(x^2+A)+B
-                y.lock();
                 y.clone(x);
                 y.mod_exp(ResourceManager.TWO, curve.pBN);
                 y.mod_add(curve.aBN, curve.pBN);
                 y.mod_mult(y, x, curve.pBN);
-                x.unlock();
                 y.mod_add(curve.bBN, curve.pBN);
                 y.sqrt_FP(curve.pBN);
-                p.lock();
                 byte parity = (byte) ((y.as_byte_array()[(short) (curve.COORD_SIZE - 1)] & 0xff) % 2);
                 if ((parity == 0 && output[offset] != (byte) 0x02) || (parity == 1 && output[offset] != (byte) 0x03)) {
                     p.from_byte_array(curve.p);
@@ -823,8 +718,6 @@ public class jcmathlib {
                 } else {
                     y.prepend_zeros(curve.COORD_SIZE, output, (short) (offset + curve.COORD_SIZE + 1));
                 }
-                y.unlock();
-                p.unlock();
                 output[offset] = (byte) 0x04;
             }
             return (short) (2 * curve.COORD_SIZE + 1);
@@ -986,17 +879,17 @@ public class jcmathlib {
          */
         public short MAX_POINT_SIZE = (short) 64;
         /**
-         * The size of single coordinate of the largest ECC point used 
+         * The size of single coordinate of the largest ECC point used
          */
         public short MAX_COORD_SIZE = (short) 32; // MAX_POINT_SIZE / 2
-        
-        
+    
+    
         public ResourceManager rm;
     
         /**
-         * Creates new control structure for requested bit length with all preallocated arrays and engines 
-         * @param maxECLength maximum length of ECPoint objects supported. The provided value is used to 
-         *      initialize properly underlying arrays and engines.  
+         * Creates new control structure for requested bit length with all preallocated arrays and engines
+         * @param maxECLength maximum length of ECPoint objects supported. The provided value is used to
+         *      initialize properly underlying arrays and engines.
          */
         public ECConfig(short maxECLength) {
             if (maxECLength <= (short) 256) {
@@ -1004,7 +897,7 @@ public class jcmathlib {
             }
             else if (maxECLength <= (short) 384) {
                 setECC384Config();
-            } 
+            }
             else if (maxECLength <= (short) 512) {
                 setECC512Config();
             }
@@ -1014,16 +907,13 @@ public class jcmathlib {
     
             rm = new ResourceManager(MAX_POINT_SIZE, MAX_COORD_SIZE, MAX_BIGNAT_SIZE, MULT_RSA_ENGINE_MAX_LENGTH_BITS, MODULO_RSA_ENGINE_MAX_LENGTH_BITS);
         }
-        
+    
         public void refreshAfterReset() {
-            if (rm.locker != null) { 
-                rm.locker.refreshAfterReset();
-            }        
         }
     
         public void setECC256Config() {
             MODULO_RSA_ENGINE_MAX_LENGTH_BITS = (short) 512;
-            MULT_RSA_ENGINE_MAX_LENGTH_BITS = (short) 768;        
+            MULT_RSA_ENGINE_MAX_LENGTH_BITS = (short) 768;
             MAX_POINT_SIZE = (short) 64;
             computeDerivedLengths();
         }
@@ -1044,19 +934,11 @@ public class jcmathlib {
             MAX_BIGNAT_SIZE = (short) ((short) (MODULO_RSA_ENGINE_MAX_LENGTH_BITS / 8) + 1);
             MAX_COORD_SIZE = (short) (MAX_POINT_SIZE / 2);
         }
-    
-        /**
-         * Unlocks all logically locked arrays and objects. Useful as recovery after premature end of some operation (e.g., due to exception)
-         * when some objects remains locked.
-         */
-        void unlockAll() {
-            rm.unlockAll();
-        }
     }
     
     
     /**
-     * 
+     *
      * @author Vasilios Mavroudis and Petr Svenda
      */
     public static class ECCurve {
@@ -1070,16 +952,13 @@ public class jcmathlib {
         public byte[] b;
         public byte[] G;
         public byte[] r;
-        
-        public BigNat pBN;
-        public BigNat aBN;
-        public BigNat bBN;
-        public BigNat rBN;
-
+    
+        public BigNat pBN, aBN, bBN, rBN;
+    
         public KeyPair disposable_pair;
         public ECPrivateKey disposable_priv;
     
-        
+    
     
         /**
          * Creates new curve object from provided parameters. Either copy of provided
@@ -1113,7 +992,7 @@ public class jcmathlib {
                 Util.arrayCopyNonAtomic(r_arr, (short) 0, r, (short) 0, (short) r.length);
             }
             else {
-                // No allocation, store directly provided arrays 
+                // No allocation, store directly provided arrays
                 this.p = p_arr;
                 this.a = a_arr;
                 this.b = b_arr;
@@ -1127,11 +1006,11 @@ public class jcmathlib {
             this.aBN = new BigNat(this.a, null);
             this.bBN = new BigNat(this.b, null);
             this.rBN = new BigNat(this.r, null);
-
+    
             this.disposable_pair = this.newKeyPair(null);
             this.disposable_priv = (ECPrivateKey) this.disposable_pair.getPrivate();
-        }    
-        
+        }
+    
         /**
          * Refresh critical information stored in RAM for performance reasons after a card reset (RAM was cleared).
          */
@@ -1141,7 +1020,7 @@ public class jcmathlib {
             this.bBN.from_byte_array(this.b);
             this.rBN.from_byte_array(this.r);
         }
-        
+    
         /**
          * Creates a new keyPair based on this curve parameters. KeyPair object is reused if provided. Fresh keyPair value is generated.
          * @param existingKeyPair existing KeyPair object which is reused if required. If null, new KeyPair is allocated
@@ -1153,9 +1032,9 @@ public class jcmathlib {
             if (existingKeyPair == null) { // Allocate if not supplied
                 existingKeyPair = new KeyPair(KeyPair.ALG_EC_FP, KEY_LENGTH);
             }
-            
+    
             // Some implementation will not return valid pub key until ecKeyPair.genKeyPair() is called
-            // Other implementation will fail with exception if same is called => try catch and drop any exception 
+            // Other implementation will fail with exception if same is called => try catch and drop any exception
             try {
                 pubKey = (ECPublicKey) existingKeyPair.getPublic();
                 if (pubKey == null) {
@@ -1163,7 +1042,7 @@ public class jcmathlib {
                 }
             } catch (Exception e) {
             } // intentionally do nothing
-            
+    
             privKey = (ECPrivateKey) existingKeyPair.getPrivate();
             pubKey = (ECPublicKey) existingKeyPair.getPublic();
     
@@ -1186,7 +1065,7 @@ public class jcmathlib {
     
             return existingKeyPair;
         }
-        
+    
         public KeyPair newKeyPair_legacy(KeyPair existingKeyPair) {
             ECPrivateKey privKey;
             ECPublicKey pubKey;
@@ -1220,10 +1099,10 @@ public class jcmathlib {
     
             return existingKeyPair;
         }
-        
-        
+    
+    
         /**
-         * Converts provided Bignat into temporary EC private key object. No new 
+         * Converts provided Bignat into temporary EC private key object. No new
          * allocation is performed, returned ECPrivateKey is overwritten by next call.
          * @param bn Bignat with new value
          * @return ECPrivateKey initialized with provided Bignat
@@ -1232,7 +1111,7 @@ public class jcmathlib {
             disposable_priv.setS(bn.as_byte_array(), (short) 0, bn.length());
             return disposable_priv;
         }
-        
+    
         /**
          * Set new G for this curve. Also updates all dependent key values.
          * @param newG buffer with new G
@@ -1243,7 +1122,7 @@ public class jcmathlib {
             Util.arrayCopyNonAtomic(newG, newGOffset, G, (short) 0, newGLen);
             this.disposable_pair = this.newKeyPair(this.disposable_pair);
             this.disposable_priv = (ECPrivateKey) this.disposable_pair.getPrivate();
-            this.disposable_priv.setG(newG, newGOffset, newGLen);  
+            this.disposable_priv.setG(newG, newGOffset, newGLen);
         }
     }
     /**
@@ -1394,44 +1273,6 @@ public class jcmathlib {
         }
     
         /**
-         * Lock/reserve this bignat for subsequent use.
-         * Used to protect corruption of pre-allocated temporary Bignats used in different,
-         * potentially nested operations. Must be unlocked by {@code unlock()} later on.
-         *
-         * @throws SW_LOCK_ALREADYLOCKED if already locked (is already in use by other operation)
-         */
-        public void lock() {
-            if (!locked) {
-                locked = true;
-                if (ERASE_ON_LOCK) {
-                    erase();
-                }
-            } else {
-                // this Bignat is already locked, raise exception (incorrect sequence of locking and unlocking)
-                ISOException.throwIt(ReturnCodes.SW_LOCK_ALREADYLOCKED);
-            }
-        }
-    
-        /**
-         * Unlock/release this bignat from use. Used to protect corruption
-         * of pre-allocated temporary Bignats used in different nested operations.
-         * Must be locked before.
-         *
-         * @throws SW_LOCK_NOTLOCKED if was not locked before (inconsistence in lock/unlock sequence)
-         */
-        public void unlock() {
-            if (locked) {
-                locked = false;
-                if (ERASE_ON_UNLOCK) {
-                    erase();
-                }
-            } else {
-                // this Bignat is not locked, raise exception (incorrect sequence of locking and unlocking)
-                ISOException.throwIt(ReturnCodes.SW_LOCK_NOTLOCKED);
-            }
-        }
-    
-        /**
          * Return current state of logical lock of this object
          *
          * @return true if object is logically locked (reserved), false otherwise
@@ -1529,7 +1370,6 @@ public class jcmathlib {
             byte[] tmpBuffer = rm.ARRAY_A;
             short this_start, other_start, len;
     
-            rm.lock(tmpBuffer);
             if (this.size >= new_size) {
                 this_start = (short) (this.size - new_size);
                 other_start = 0;
@@ -1556,7 +1396,6 @@ public class jcmathlib {
                     Util.arrayFillNonAtomic(value, (short) 0, other_start, (byte) 0);
                 }
             }
-            rm.unlock(tmpBuffer);
     
             set_size(new_size);
         }
@@ -1734,14 +1573,12 @@ public class jcmathlib {
             // Compare using hash engine
             // The comparison is made with hash of point values instead of directly values.
             // This way, offset of first mismatching byte is not leaked via timing side-channel.
-            rm.lock(tmpBuffer);
-            rm.lock(hashBuffer);
             if (this.length() == other.length()) {
                 // Same length, we can hash directly from BN values
                 rm.hashEngine.doFinal(this.value, (short) 0, this.length(), hashBuffer, (short) 0);
                 hashLen = rm.hashEngine.doFinal(other.value, (short) 0, other.length(), tmpBuffer, (short) 0);
             } else {
-                // Different length of bignats - can be still same if prepended with zeroes 
+                // Different length of bignats - can be still same if prepended with zeroes
                 // Find the length of longer one and padd other one with starting zeroes
                 if (this.length() < other.length()) {
                     this.prepend_zeros(other.length(), tmpBuffer, (short) 0);
@@ -1756,8 +1593,6 @@ public class jcmathlib {
     
             boolean result = Util.arrayCompare(hashBuffer, (short) 0, tmpBuffer, (short) 0, hashLen) == 0;
     
-            rm.unlock(tmpBuffer);
-            rm.unlock(hashBuffer);
     
             return result;
         }
@@ -1765,7 +1600,7 @@ public class jcmathlib {
     
         /**
         * Addition of big integers x and y stored in byte arrays with specified offset and length.
-        * The result is stored into x array argument. 
+        * The result is stored into x array argument.
         * @param x          array with first bignat
         * @param xOffset    start offset in array of {@code x}
         * @param xLength    length of {@code x}
@@ -2199,7 +2034,7 @@ public class jcmathlib {
                 // divisor * 2^(8 * divisor_shift) is bigger than this.
                 while (!shift_lesser(divisor, divisor_shift,
                         (short) (division_round > 0 ? division_round - 1 : 0))) {
-                    numLoops2++; // BUGBUG: CTO - number of these loops fluctuates heavily => strong impact on operation time 
+                    numLoops2++; // BUGBUG: CTO - number of these loops fluctuates heavily => strong impact on operation time
                     // this is bigger or equal than the shifted divisor.
                     // Need to subtract some multiple of divisor from this.
                     // Make a conservative estimation of the multiple to subtract.
@@ -2376,7 +2211,6 @@ public class jcmathlib {
                 tmp_size = other.size;
             }
             tmp_size++;
-            tmp.lock();
             tmp.set_size(tmp_size);
             tmp.zero();
             tmp.copy(this);
@@ -2384,7 +2218,6 @@ public class jcmathlib {
             tmp.mod(modulo);
             tmp.shrink();
             this.clone(tmp);
-            tmp.unlock();
         }
     
         /**
@@ -2402,25 +2235,19 @@ public class jcmathlib {
                 this.subtract(other);
                 this.mod(modulo);
             } else { //other>this (mod-other+this)
-                tmpOther.lock();
                 tmpOther.clone(other);
                 tmpOther.mod(modulo);
     
                 //fnc_mod_sub_tmpThis = new Bignat(this.length());
-                tmpThis.lock();
                 tmpThis.clone(this);
                 tmpThis.mod(modulo);
     
-                tmp.lock();
                 tmp.clone(modulo);
                 tmp.subtract(tmpOther);
-                tmpOther.unlock();
                 tmp.add(tmpThis); //this will never overflow as "other" is larger than "this"
-                tmpThis.unlock();
                 tmp.mod(modulo);
                 tmp.shrink();
                 this.clone(tmp);
-                tmp.unlock();
             }
         }
     
@@ -2491,11 +2318,9 @@ public class jcmathlib {
         public void divide(BigNat other) {
             BigNat tmp = rm.BN_E;
     
-            tmp.lock();
             tmp.clone(this);
             tmp.remainder_divide(other, this);
             this.clone(tmp);
-            tmp.unlock();
         }
     
         /**
@@ -2508,8 +2333,6 @@ public class jcmathlib {
             BigNat tmp = rm.BN_A;
             BigNat tmpOther = rm.BN_B;
     
-            tmp.lock();
-            tmpOther.lock();
     
             tmpOther.clone(other);
     
@@ -2521,8 +2344,6 @@ public class jcmathlib {
                 this.clone(tmp);
             }
     
-            tmp.unlock();
-            tmpOther.unlock();
         }
     
         /**
@@ -2535,7 +2356,6 @@ public class jcmathlib {
         public boolean is_coprime(BigNat a, BigNat b) {
             BigNat tmp = rm.BN_C; // is_coprime calls gcd internally
     
-            tmp.lock();
             tmp.clone(a);
     
             tmp.gcd(b);
@@ -2553,17 +2373,13 @@ public class jcmathlib {
             BigNat i = rm.BN_B;
     
             this.one();
-            i.lock();
             i.set_size(exp.length());
             i.zero();
-            tmp.lock();
             tmp.set_size((short) (2 * this.length()));
             for (; i.lesser(exp); i.increment_one()) {
                 tmp.mult(this, base);
                 this.copy(tmp);
             }
-            i.unlock();
-            tmp.unlock();
         }
     
         /**
@@ -2623,7 +2439,6 @@ public class jcmathlib {
             byte[] resultBuffer1 = rm.ARRAY_A;
             byte[] resultBuffer2 = rm.ARRAY_B;
     
-            rm.lock(resultBuffer1);
     
             // x+y
             Util.arrayFillNonAtomic(resultBuffer1, (short) 0, (short) resultBuffer1.length, (byte) 0);
@@ -2652,7 +2467,6 @@ public class jcmathlib {
             rm.multCiph.doFinal(resultBuffer1, (byte) 0, (short) resultBuffer1.length, resultBuffer1, (short) 0);
     
             // x^2
-            rm.lock(resultBuffer2);
             if (x_pow_2 == null) {
                 // x^2 is not precomputed
                 Util.arrayFillNonAtomic(resultBuffer2, (short) 0, (short) resultBuffer2.length, (byte) 0);
@@ -2716,8 +2530,6 @@ public class jcmathlib {
                 this.value[i] = (byte) (short) (res | res2);
                 multOffset--;
             }
-            rm.unlock(resultBuffer1);
-            rm.unlock(resultBuffer2);
         }
     
     
@@ -2735,7 +2547,6 @@ public class jcmathlib {
             this.mod_exp2(mod);
     
             BigNat tmp = rm.BN_D;
-            tmp.lock();
             tmp.clone(x);
             tmp.mod_exp2(mod);
             this.mod_sub(tmp, mod);
@@ -2743,7 +2554,6 @@ public class jcmathlib {
             tmp.clone(y);
             tmp.mod_exp2(mod);
             this.mod_sub(tmp, mod);
-            tmp.unlock();
     
             boolean carry = false;
             if(this.is_odd()) {
@@ -2764,7 +2574,6 @@ public class jcmathlib {
         public void mod_mult(BigNat x, BigNat y, BigNat modulo) {
             BigNat tmp = rm.BN_E; // mod_mult is called from sqrt_FP => requires BN_E not being locked when mod_mult is called
     
-            tmp.lock();
             // Perform fast multiplication using RSA trick
             if(OperationSupport.getInstance().RSA_MULT_TRICK) {
                 tmp.mod_mult_rsa_trick(x, y, modulo);
@@ -2775,7 +2584,6 @@ public class jcmathlib {
                 tmp.shrink();
             }
             this.clone(tmp);
-            tmp.unlock();
         }
         // Potential speedup for  modular multiplication
         // Binomial theorem: (op1 + op2)^2 - (op1 - op2)^2 = 4 * op1 * op2 mod (mod)
@@ -2832,20 +2640,16 @@ public class jcmathlib {
             BigNat z = rm.BN_E;
     
             // 1. By factoring out powers of 2, find Q and S such that p-1=Q2^S p-1=Q*2^S and Q is odd
-            p1.lock();
             p1.clone(p);
             p1.decrement_one();
     
             // Compute Q
-            q.lock();
             q.clone(p1);
             q.divide_by_2(); // Q /= 2
     
             //Compute S
-            s.lock();
             s.set_size(p.length());
             s.zero();
-            tmp.lock();
             tmp.set_size(p.length());
             tmp.zero();
     
@@ -2857,19 +2661,14 @@ public class jcmathlib {
                 tmp.mod(p);
                 tmp.shrink();
             }
-            tmp.unlock();
-            s.unlock();
     
             // 2. Find the first quadratic non-residue z by brute-force search
-            exp.lock();
             exp.clone(p1);
             exp.divide_by_2();
     
     
-            z.lock();
             z.set_size(p.length());
             z.one();
-            tmp.lock();
             tmp.zero();
             tmp.copy(ResourceManager.ONE);
     
@@ -2878,17 +2677,12 @@ public class jcmathlib {
                 tmp.copy(z);
                 tmp.mod_exp(exp, p);
             }
-            p1.unlock();
-            tmp.unlock();
-            z.unlock();
             exp.copy(q);
-            q.unlock();
             exp.increment_one();
             exp.divide_by_2();
     
             this.mod(p);
             this.mod_exp(exp, p);
-            exp.unlock();
         }
     
     
@@ -2899,7 +2693,7 @@ public class jcmathlib {
          */
         public void mod(BigNat modulo) {
             this.remainder_divide(modulo, null);
-            // NOTE: attempt made to utilize crypto co-processor in pow2Mod_RSATrick_worksOnlyAbout30pp, but doesn't work for all inputs 
+            // NOTE: attempt made to utilize crypto co-processor in pow2Mod_RSATrick_worksOnlyAbout30pp, but doesn't work for all inputs
         }
     
     
@@ -2911,13 +2705,11 @@ public class jcmathlib {
          */
         public void mod_inv(BigNat modulo) {
             BigNat tmp = rm.BN_B;
-            tmp.lock();
             tmp.clone(modulo);
             tmp.decrement_one();
             tmp.decrement_one();
     
             mod_exp(tmp, modulo);
-            tmp.unlock();
         }
     
         /**
@@ -2936,7 +2728,6 @@ public class jcmathlib {
             short tmpSize = (short) (rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS / 8);
             short modLength;
     
-            tmpMod.lock();
             tmpMod.set_size(tmpSize);
     
             // Verify if pre-allocated engine match the required values
@@ -2948,7 +2739,6 @@ public class jcmathlib {
                 rm.expPK = (RSAPrivateKey) KeyBuilder.buildKey(javacard.security.KeyBuilder.TYPE_RSA_PRIVATE, rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
             }
             rm.expPK.setExponent(exponent.as_byte_array(), (short) 0, exponent.length());
-            rm.lock(tmpBuffer);
             if (OperationSupport.getInstance().RSA_RESIZE_MODULUS) {
                 modulo.prepend_zeros(tmpSize, tmpBuffer, (short) 0);
                 rm.expPK.setModulus(tmpBuffer, (short) 0, tmpSize);
@@ -2965,17 +2755,14 @@ public class jcmathlib {
             } else {
                 len = rm.expCiph.doFinal(this.as_byte_array(), (short) 0, this.length(), tmpMod.value, (short) 0);
             }
-            rm.unlock(tmpBuffer);
     
             if (OperationSupport.getInstance().RSA_PREPEND_ZEROS) {
                 // Decrypted length can be either tmp_size or less because of leading zeroes consumed by simulator engine implementation
                 // Move obtained value into proper position with zeroes prepended
                 if (len != tmpSize) {
-                    rm.lock(tmpBuffer);
                     Util.arrayFillNonAtomic(tmpBuffer, (short) 0, (short) tmpBuffer.length, (byte) 0);
                     Util.arrayCopyNonAtomic(tmpMod.value, (short) 0, tmpBuffer, (short) (tmpSize - len), len);
                     Util.arrayCopyNonAtomic(tmpBuffer, (short) 0, tmpMod.value, (short) 0, tmpSize);
-                    rm.unlock(tmpBuffer);
                 }
             } else {
                 // real cards should keep whole length of block, just check
@@ -2985,7 +2772,6 @@ public class jcmathlib {
             }
             tmpMod.shrink();
             this.clone(tmpMod);
-            tmpMod.unlock();
         }
     
     
@@ -3001,7 +2787,6 @@ public class jcmathlib {
         public void mod_negate(BigNat mod) {
             BigNat tmp = rm.BN_B;
     
-            tmp.lock();
             tmp.set_size(mod.length());
             tmp.copy(mod); //-y=mod-y
     
@@ -3010,7 +2795,6 @@ public class jcmathlib {
             }
             tmp.subtract(this);
             this.copy(tmp);
-            tmp.unlock();
         }
     
         /**
@@ -3022,11 +2806,9 @@ public class jcmathlib {
             byte[] tmp = rm.ARRAY_A;
     
             // Move whole content by numBytes offset
-            rm.lock(tmp);
             Util.arrayCopyNonAtomic(this.value, (short) 0, tmp, (short) 0, (short) (this.value.length));
             Util.arrayCopyNonAtomic(tmp, (short) 0, this.value, numBytes, (short) ((short) (this.value.length) - numBytes));
             Util.arrayFillNonAtomic(this.value, (short) 0, numBytes, (byte) 0);
-            rm.unlock(tmp);
         }
     
         /**
@@ -3081,12 +2863,11 @@ public class jcmathlib {
         }
     }
     
-
+    
     /**
      * @author Petr Svenda
      */
     public static class ResourceManager {
-        public ObjectLocker locker;
         public ObjectAllocator memAlloc;
     
         MessageDigest hashEngine;
@@ -3113,8 +2894,6 @@ public class jcmathlib {
     
         public ResourceManager(short MAX_POINT_SIZE, short MAX_COORD_SIZE, short MAX_BIGNAT_SIZE, short MULT_RSA_ENGINE_MAX_LENGTH_BITS, short MODULO_RSA_ENGINE_MAX_LENGTH_BITS) {
             this.MODULO_RSA_ENGINE_MAX_LENGTH_BITS = MODULO_RSA_ENGINE_MAX_LENGTH_BITS;
-            // Allocate long-term helper values
-            locker = new ObjectLocker((short) (LOCKER_ARRAYS + LOCKER_OBJECTS));
             // locker.setLockingActive(false); // if required, locking can be disabled
             memAlloc = new ObjectAllocator();
             memAlloc.setAllAllocatorsRAM();
@@ -3124,16 +2903,11 @@ public class jcmathlib {
     
     
             ARRAY_A = memAlloc.allocateByteArray((short) (MULT_RSA_ENGINE_MAX_LENGTH_BITS / 8), memAlloc.getAllocatorType(ObjectAllocator.ARRAY_A));
-            locker.registerLock(ARRAY_A);
             ARRAY_B = memAlloc.allocateByteArray((short) (MULT_RSA_ENGINE_MAX_LENGTH_BITS / 8), memAlloc.getAllocatorType(ObjectAllocator.ARRAY_B));
-            locker.registerLock(ARRAY_B);
             POINT_ARRAY_A = memAlloc.allocateByteArray((short) (MAX_POINT_SIZE + 1), memAlloc.getAllocatorType(ObjectAllocator.POINT_ARRAY_A));
-            locker.registerLock(POINT_ARRAY_A);
             POINT_ARRAY_B = memAlloc.allocateByteArray((short) (MAX_POINT_SIZE + 1), memAlloc.getAllocatorType(ObjectAllocator.POINT_ARRAY_B));
-            locker.registerLock(POINT_ARRAY_B);
             hashEngine = MessageDigest.getInstance(MessageDigest.ALG_SHA_256, false);
             HASH_ARRAY = memAlloc.allocateByteArray(hashEngine.getLength(), memAlloc.getAllocatorType(ObjectAllocator.HASH_ARRAY));
-            locker.registerLock(HASH_ARRAY);
             RAM_WORD = memAlloc.allocateByteArray((short) 2, JCSystem.MEMORY_TYPE_TRANSIENT_RESET); // only 2b RAM for faster add(short)
     
             BN_A = new BigNat(MAX_BIGNAT_SIZE, memAlloc.getAllocatorType(ObjectAllocator.BN_A), this);
@@ -3211,105 +2985,6 @@ public class jcmathlib {
             Util.arrayFillNonAtomic(POINT_ARRAY_A, (short) 0, (short) POINT_ARRAY_A.length, (byte) 0);
             Util.arrayFillNonAtomic(RAM_WORD, (short) 0, (short) RAM_WORD.length, (byte) 0);
         }
-    
-        /**
-         * Lock a byte array
-         *
-         * @param objToLock the byte array
-         */
-        public void lock(byte[] objToLock) {
-            locker.lock(objToLock);
-        }
-    
-        /**
-         * Unlock a byte array
-         *
-         * @param objToUnlock the byte array
-         */
-        public void unlock(byte[] objToUnlock) {
-            locker.unlock(objToUnlock);
-        }
-    
-        /**
-         * Unlocks all locked objects
-         */
-        public void unlockAll() {
-            if (BN_A.isLocked()) {
-                BN_A.unlock();
-            }
-            if (BN_B.isLocked()) {
-                BN_B.unlock();
-            }
-            if (BN_C.isLocked()) {
-                BN_C.unlock();
-            }
-            if (BN_D.isLocked()) {
-                BN_D.unlock();
-            }
-            if (BN_E.isLocked()) {
-                BN_E.unlock();
-            }
-            if (BN_F.isLocked()) {
-                BN_F.unlock();
-            }
-    
-            if (EC_BN_A.isLocked()) {
-                EC_BN_A.unlock();
-            }
-            if (EC_BN_B.isLocked()) {
-                EC_BN_B.unlock();
-            }
-            if (EC_BN_C.isLocked()) {
-                EC_BN_C.unlock();
-            }
-            if (EC_BN_D.isLocked()) {
-                EC_BN_D.unlock();
-            }
-            if (EC_BN_E.isLocked()) {
-                EC_BN_E.unlock();
-            }
-            if (EC_BN_F.isLocked()) {
-                EC_BN_F.unlock();
-            }
-    
-            locker.unlockAll();
-        }
-    }
-    
-    public static class SecP256r1 {
-    
-        public final static short KEY_LENGTH = 256;//Bits
-        public final static short POINT_SIZE = 65; //Bytes
-        public final static short COORD_SIZE = 32; //Bytes
-    
-        public final static byte[] p = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x00,
-                0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-    
-    
-        public final static byte[] a = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x00,
-                0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xfc};
-    
-        public final static byte[] b = { 0x5a, (byte) 0xc6, 0x35, (byte) 0xd8, (byte) 0xaa, 0x3a,
-                (byte) 0x93, (byte) 0xe7, (byte) 0xb3, (byte) 0xeb, (byte) 0xbd, 0x55, 0x76, (byte) 0x98,
-                (byte) 0x86, (byte) 0xbc, 0x65, 0x1d, 0x06, (byte) 0xb0, (byte) 0xcc, 0x53, (byte) 0xb0,
-                (byte) 0xf6, 0x3b, (byte) 0xce, 0x3c, 0x3e, 0x27, (byte) 0xd2, 0x60, 0x4b };
-    
-        public final static byte[] G = { 0x04, 0x6b, 0x17, (byte) 0xd1, (byte) 0xf2, (byte) 0xe1, 0x2c,
-                0x42, 0x47, (byte) 0xf8, (byte) 0xbc, (byte) 0xe6, (byte) 0xe5, 0x63, (byte) 0xa4, 0x40,
-                (byte) 0xf2, 0x77, 0x03, 0x7d, (byte) 0x81, 0x2d, (byte) 0xeb, 0x33, (byte) 0xa0, (byte) 0xf4,
-                (byte) 0xa1, 0x39, 0x45, (byte) 0xd8, (byte) 0x98, (byte) 0xc2, (byte) 0x96, 0x4f, (byte) 0xe3,
-                0x42, (byte) 0xe2, (byte) 0xfe, 0x1a, 0x7f, (byte) 0x9b, (byte) 0x8e, (byte) 0xe7, (byte) 0xeb,
-                0x4a, 0x7c, 0x0f, (byte) 0x9e, 0x16, 0x2b, (byte) 0xce, 0x33, 0x57, 0x6b, 0x31, 0x5e,
-                (byte) 0xce, (byte) 0xcb, (byte) 0xb6, 0x40, 0x68, 0x37, (byte) 0xbf, 0x51, (byte) 0xf5 };
-    
-        public final static byte[] r = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x00, 0x00,
-                0x00, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                (byte) 0xff, (byte) 0xbc, (byte) 0xe6, (byte) 0xfa, (byte) 0xad, (byte) 0xa7, 0x17, (byte) 0x9e,
-                (byte) 0x84, (byte) 0xf3, (byte) 0xb9, (byte) 0xca, (byte) 0xc2, (byte) 0xfc, 0x63, 0x25, 0x51 };
     }
     
     public static class SecP256k1 {
@@ -3383,279 +3058,20 @@ public class jcmathlib {
         };
     }
     
-
-    /**
-     *
-    * @author Vasilios Mavroudis and Petr Svenda
-     */
-    public static class ObjectLocker {
-        /**
-         * Configuration flag controlling clearing of shared objects on lock as
-         * prevention of unwanted leak of sensitive information from previous
-         * operation. If true, object is erased once locked for use
-         */
-        private boolean ERASE_ON_LOCK = false;
-        /**
-         * Configuration flag controlling clearing of shared objects on lock as
-         * prevention of unwanted leak of sensitive information to next 
-         * operation. If true, object is erased once unlocked from use
-         */
-        private boolean ERASE_ON_UNLOCK = false;    
-        
-        /**
-         * Configuration flag controlling clearing of shared objects on lock as
-         * prevention of unwanted leak of sensitive information to next operation.
-         * If true, object is erased once unlocked from use
-         */
-        private boolean PROFILE_LOCKED_OBJECTS = false;
-        /**
-         * Array of pointers to objects which will be guarded by locks. 
-         * Every even value contains pointer to registered object. Subsequent index 
-         * contains null if not locked, !null if locked, 
-         * Stored in RAM for fast access.
-         */
-        private Object[] lockedObjects;
-        /**
-         * Copy of pointers to objects from lockedObjects in persistent memory to refresh after card reset.
-         * Refreshed by call {@code refreshAfterReset()}
-         */
-        private Object[] lockedObjectsPersistent;
-        
-        /**
-         * Array to hold state of lock for all other objects implemented as N x N array [0...N-1][N...2N-1]...[] 
-         * where [0...N-1] contains the states of lock for all other objects than first object (lockedObjects[0]). 
-         * If no other object is locked after series of operations, [0...N-1] will contain 0 on all indexes. 
-         * All objects (lockedObjects[i]) which happened to be locked together with have 1 at [0...i...N-1]. 
-         */
-        public byte[] profileLockedObjects;
-        /**
-         * If true, locking is performed, otherwise relevant method just return without any operation performed
-         */
-        private boolean bLockingActive = true;
-        
-        public ObjectLocker(short numArrays) {
-            initialize(numArrays, ERASE_ON_LOCK, ERASE_ON_UNLOCK);
-        }
-        public ObjectLocker(short numArrays, boolean bEraseOnLock, boolean bEraseOnUnlock) {
-            initialize(numArrays, bEraseOnLock, bEraseOnUnlock);
-        }
-        private final void initialize(short numObjects, boolean bEraseOnLock, boolean bEraseOnUnlock) {
-            lockedObjects = JCSystem.makeTransientObjectArray((short) (2 * numObjects), JCSystem.CLEAR_ON_RESET);
-            lockedObjectsPersistent = new Object[(short) (2 * numObjects)];
-            ERASE_ON_LOCK = bEraseOnLock;
-            ERASE_ON_UNLOCK = bEraseOnUnlock;
-            profileLockedObjects = new byte[(short) (numObjects * numObjects)]; 
-            resetProfileLocks();
-        }
-        
-        /**
-         * Reset profile array with profile locks statistics.
-         */
-        public void resetProfileLocks() {
-            Util.arrayFillNonAtomic(profileLockedObjects, (short) 0, (short) profileLockedObjects.length, (byte) 0);
-        }
-    
-        /**
-         * Register new object for lock guarding. 
-         * @param objToLock object to be guarded
-         * @return index to internal array where registered object is stored (if known, lock/unlock is faster)
-         */
-        public short registerLock(Object objToLock) {
-            short i;
-            for (i = 0; i < (short) lockedObjects.length; i += 2) {
-                if (lockedObjects[i] == null) {
-                    // Free slot found
-                    lockedObjects[i] = objToLock;
-                    lockedObjects[(short) (i + 1)] = null; // null means array is unlocked
-                    lockedObjectsPersistent[i] = objToLock; // Store same into persistent array as well
-                    lockedObjectsPersistent[(short) (i + 1)] = null; 
-                    return i; // Return index for potential speedup of locking
-                }
-            }
-            ISOException.throwIt(ReturnCodes.SW_LOCK_NOFREESLOT);
-            return -1;
-        }
-        /**
-         * Locking array (placed in RAM) must be refreshed after card reset. Call this method during select()
-         */
-        public void refreshAfterReset() {
-            for (short i = 0; i < (short) lockedObjects.length; i++) {
-                lockedObjects[i] = lockedObjectsPersistent[i];
-            }
-        }
-        
-        /**
-         * Controls if locking and unlocking is actually performed. The lock operations 
-         * add some overhead, so it may be turned on/off as required. E.g., when developing 
-         * new code or like to enjoy protection of automatic clearing of shared objects before/after lock
-         * enable this feature. 
-         * @param bLockActive if true, locking and unlocking is performed. If false, lock/unlock methods will return without any effect
-         */
-        public void setLockingActive(boolean bLockActive) {
-            bLockingActive = bLockActive;
-        }
-        /**
-         * Lock/reserve provided object for subsequent use. Used to protect corruption
-         * of pre-allocated shared objects in different, potentially nested,
-         * operations. Must be unlocked later on.
-         *
-         * @param objToLock array to be locked
-         * @throws SW_ALREADYLOCKED if already locked (is already in use by
-         * other operation)
-         */
-        public void lock(Object objToLock) {
-            if (!bLockingActive) {
-                return;
-            }
-            // Find object to lock
-            short i;
-            for (i = 0; i < (short) lockedObjects.length; i += 2) {
-                if (lockedObjects[i] != null && lockedObjects[i].equals(objToLock)) {
-                    lock(objToLock, i);
-                    break;
-                }
-            }
-            // If reached here, required array was not found
-            if (i == (short) lockedObjects.length) {
-                ISOException.throwIt(ReturnCodes.SW_LOCK_OBJECT_NOT_FOUND);
-            }
-        }
-        public void lock(byte[] objToLock) {
-            if (!bLockingActive) {
-                return;
-            }
-            lock((Object) objToLock);
-            if (ERASE_ON_LOCK) {
-                Util.arrayFillNonAtomic(objToLock, (short) 0, (short) objToLock.length, (byte) 0);
-            }
-        }
-        /**
-         * Unlock/release object from use. Used to protect corruption of
-         * pre-allocated objects used in different nested operations. Must
-         * be locked before.
-         *
-         * @param objToUnlock object to unlock
-         * @throws SW_NOTLOCKED_BIGNAT if was not locked before (inconsistence in
-         * lock/unlock sequence)
-         */
-        
-        public void unlock(Object objToUnlock) {
-            if (!bLockingActive) {
-                return;
-            }
-            // Find object to unlock
-            short i;
-            for (i = 0; i < (short) lockedObjects.length; i += 2) {
-                if (lockedObjects[i] != null && lockedObjects[i].equals(objToUnlock)) {
-                    unlock(objToUnlock, i);
-                    break;
-                }
-            }
-            // If reached here, required array was not found
-            if (i == (short) lockedObjects.length) {
-                ISOException.throwIt(ReturnCodes.SW_LOCK_OBJECT_NOT_FOUND);
-            }
-        }    
-    
-        public void unlock(byte[] objToUnlock) {
-            if (!bLockingActive) {
-                return;
-            }
-            unlock((Object) objToUnlock);
-            if (ERASE_ON_UNLOCK) {
-                Util.arrayFillNonAtomic(objToUnlock, (short) 0, (short) objToUnlock.length, (byte) 0);
-            }
-        }    
-        
-        /**
-         * Unlocks all locked objects
-         */
-        public void unlockAll() {
-            if (!bLockingActive) {
-                return;
-            }
-            for (short i = 0; i < (short) lockedObjects.length; i += 2) {
-                lockedObjects[(short) (i + 1)] = null;
-            }
-        }
-        
-        /**
-         * Check if provided object is logically locked
-         * @param objToUnlock object to be checked
-         * @return true of array is logically locked, false otherwise 
-         */
-        
-        public boolean isLocked(Object objToUnlock) {
-            if (!bLockingActive) {
-                return false;
-            }
-            // Find object to unlock
-            short i;
-            for (i = 0; i < (short) lockedObjects.length; i += 2) {
-                if (lockedObjects[i] != null && lockedObjects[i].equals(objToUnlock)) {
-                    return lockedObjects[(short) (i + 1)] != null;
-                }
-            }
-            // If reached here, required object was not found
-            if (i == (short) lockedObjects.length) {
-                ISOException.throwIt(ReturnCodes.SW_LOCK_OBJECT_NOT_FOUND);
-            }
-            return false;
-        }
-        
-        
-        private void lock(Object objToLock, short lockIndex) {
-            if (lockedObjects[lockIndex] != null && !lockedObjects[lockIndex].equals(objToLock)) {
-                ISOException.throwIt(ReturnCodes.SW_LOCK_OBJECT_MISMATCH);
-            }
-            // Next position in array signalizes logical lock (null == unlocked, !null == locked) 
-            if (lockedObjects[(short) (lockIndex + 1)] == null) {
-                lockedObjects[(short) (lockIndex + 1)] = objToLock; // lock logically by assigning object reference to [i + 1]
-            } else {
-                // this array is already locked, raise exception (incorrect sequence of locking and unlocking)
-                ISOException.throwIt(ReturnCodes.SW_LOCK_ALREADYLOCKED);
-            }
-            if (PROFILE_LOCKED_OBJECTS) {
-                // If enabled, check status of all other objects and mark these that are currently locked
-                short profileLockOffset = (short) ((short) (lockIndex / 2) * (short) ((short) lockedObjects.length / 2)); // Obtain section of profileLockedObjects array relevant for current object
-                
-                for (short i = 0; i < (short) lockedObjects.length; i += 2) {
-                    if (lockedObjects[(short) (i + 1)] != null) {
-                        // Object at index i is locked, mark it to corresponding position in profileLockedObjects by setting value to 1
-                        profileLockedObjects[(short) (profileLockOffset + (short) (i / 2))] = 1;
-                    }
-                }
-            }
-        }
-        
-        private void unlock(Object objToUnlock, short lockIndex) {
-            if (lockedObjects[lockIndex] != null && !lockedObjects[lockIndex].equals(objToUnlock)) {
-                ISOException.throwIt(ReturnCodes.SW_LOCK_OBJECT_MISMATCH);
-            }
-            // Next position in array signalizes logical lock (null == unlocked, !null == locked) 
-            if (lockedObjects[(short) (lockIndex + 1)].equals(objToUnlock)) {
-                lockedObjects[(short) (lockIndex + 1)] = null; // lock logically by assigning object reference to [i + 1]
-            } else {
-                // this array is not locked, raise exception (incorrect sequence of locking and unlocking)
-                ISOException.throwIt(ReturnCodes.SW_LOCK_NOTLOCKED);
-            }
-        }
-    }
-    
     
     /**
      * The control point for unified allocation of arrays and objects with customable
-     * specification of allocator type (RAM/EEPROM) for particular array. Allows for 
-     * quick personalization and optimization of memory use when compiling for cards 
-     * with more/less available memory. 
-     * 
+     * specification of allocator type (RAM/EEPROM) for particular array. Allows for
+     * quick personalization and optimization of memory use when compiling for cards
+     * with more/less available memory.
+     *
     * @author Petr Svenda
      */
     public static class ObjectAllocator {
         short allocatedInRAM = 0;
         short allocatedInEEPROM = 0;
         byte[] ALLOCATOR_TYPE_ARRAY;
-        
+    
         public static final byte ARRAY_A = 0;
         public static final byte ARRAY_B = 1;
         public static final byte BN_A = 2;
@@ -3664,7 +3080,7 @@ public class jcmathlib {
         public static final byte BN_D = 5;
         public static final byte BN_E = 6;
         public static final byte BN_F = 7;
-        
+    
         public static final byte EC_BN_A = 8;
         public static final byte EC_BN_B = 9;
         public static final byte EC_BN_C = 10;
@@ -3674,9 +3090,9 @@ public class jcmathlib {
         public static final byte POINT_ARRAY_A = 14;
         public static final byte POINT_ARRAY_B = 15;
         public static final byte HASH_ARRAY = 16;
-        
+    
         public static final short ALLOCATOR_TYPE_ARRAY_LENGTH = (short) (HASH_ARRAY + 1);
-        
+    
         /**
          * Creates new allocator control object, resets performance counters
          */
@@ -3699,12 +3115,12 @@ public class jcmathlib {
         }
         /**
          * All type of allocator for selected object as RAM (faster), rest EEPROM (saving RAM)
-         * The current settings is heuristically obtained from measurements of performance of Bignat and ECPoint operations 
-         */    
+         * The current settings is heuristically obtained from measurements of performance of Bignat and ECPoint operations
+         */
         public void setAllocatorsTradeoff() {
             // Set initial allocators into EEPROM
             setAllAllocatorsEEPROM();
-            
+    
             // Put only the most perfromance relevant ones into RAM
             ALLOCATOR_TYPE_ARRAY[ARRAY_A] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
             ALLOCATOR_TYPE_ARRAY[ARRAY_B] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
@@ -3718,15 +3134,15 @@ public class jcmathlib {
             ALLOCATOR_TYPE_ARRAY[EC_BN_C] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
             ALLOCATOR_TYPE_ARRAY[POINT_ARRAY_A] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
             ALLOCATOR_TYPE_ARRAY[POINT_ARRAY_B] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        }   
+        }
     
         /**
          * Allocates new byte[] array with provided length either in RAM or EEPROM based on an allocator type.
-         * Method updates internal counters of bytes allocated with specific allocator. Use {@code getAllocatedInRAM()} 
+         * Method updates internal counters of bytes allocated with specific allocator. Use {@code getAllocatedInRAM()}
          * or {@code getAllocatedInEEPROM} for counters readout.
          * @param length    length of array
          * @param allocatorType type of allocator
-         * @return allocated array 
+         * @return allocated array
          */
         public byte[] allocateByteArray(short length, byte allocatorType) {
             switch (allocatorType) {
@@ -3755,8 +3171,8 @@ public class jcmathlib {
                 ISOException.throwIt(ReturnCodes.SW_ALLOCATOR_INVALIDOBJID);
                 return -1;
             }
-        }    
-        
+        }
+    
         /**
          * Returns number of bytes allocated in RAM via {@code allocateByteArray()} since last reset of counters.
          * @return number of bytes allocated in RAM via this control object
@@ -3781,4 +3197,5 @@ public class jcmathlib {
             allocatedInEEPROM = 0;
         }
     }
+
 }
