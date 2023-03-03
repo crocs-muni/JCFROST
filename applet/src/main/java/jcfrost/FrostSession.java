@@ -167,10 +167,10 @@ public class FrostSession {
             identifierBuffer.as_byte_array()[31] = commitments[j].identifier;
             JCFROST.hasher.update(identifierBuffer.as_byte_array(), (short) 0, identifierBuffer.length());
             if(POINT_SIZE == 65) {
-                commitments[j].hiding[0] = (byte) ((short) ((commitments[j].hiding[32] & 0xff) % 2) == 0x00 ? 2 : 3);
+                commitments[j].hiding[0] = (byte) ((short) ((commitments[j].hiding[64] & 0xff) % 2) == 0x00 ? 2 : 3);
                 JCFROST.hasher.update(commitments[j].hiding, (short) 0, (short) 33);
                 commitments[j].hiding[0] = (byte) 0x04;
-                commitments[j].binding[0] = (byte) ((short) ((commitments[j].binding[32] & 0xff) % 2) == 0x00 ? 2 : 3);
+                commitments[j].binding[0] = (byte) ((short) ((commitments[j].binding[64] & 0xff) % 2) == 0x00 ? 2 : 3);
                 JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
                 commitments[j].binding[0] = (byte) 0x04;
             } else {

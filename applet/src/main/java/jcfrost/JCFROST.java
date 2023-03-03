@@ -5,7 +5,7 @@ import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
 public class JCFROST extends Applet implements MultiSelectable {
-    public final static boolean DEBUG = false;
+    public final static boolean DEBUG = true;
     public final static short POINT_SIZE = 65;
     public final static byte[] DEBUG_RANDOMNESS = new byte[64];
     public static short DEBUG_RANDOMNESS_OFFSET = 0;
