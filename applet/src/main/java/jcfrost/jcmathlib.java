@@ -9,6 +9,7 @@ import javacard.security.ECPublicKey;
 import javacard.security.KeyBuilder;
 import javacard.security.KeyPair;
 import javacard.security.RSAPrivateKey;
+import javacard.security.RSAPublicKey;
 import javacardx.crypto.Cipher;
 
 public class jcmathlib {
@@ -799,11 +800,15 @@ public class jcmathlib {
         public static final short J3R180 = 0x0003;
     
         public boolean RSA_MULT_TRICK = false;
+        public boolean RSA_MOD_MULT_TRICK = false;
         public boolean RSA_MOD_EXP = false;
+        public boolean RSA_MOD_EXP_EXTRA_MOD = false;
+        public boolean RSA_MOD_EXP_PUB = false;
         public boolean RSA_PREPEND_ZEROS = false;
         public boolean RSA_KEY_REFRESH = false;
         public boolean RSA_RESIZE_BASE = true;
         public boolean RSA_RESIZE_MODULUS = true;
+        public boolean RSA_RESIZE_MODULUS_APPEND = false;
         public boolean EC_HW_XY = false;
         public boolean EC_HW_X = true;
         public boolean EC_HW_ADD = false;
@@ -833,16 +838,28 @@ public class jcmathlib {
                     EC_HW_ADD = true;
                     break;
                 case J2E145G:
+                    RSA_MOD_MULT_TRICK = false;
                     RSA_MULT_TRICK = true;
                     RSA_MOD_EXP = true;
+                    RSA_MOD_EXP_EXTRA_MOD = true;
+                    RSA_MOD_EXP_PUB = true;
+                    RSA_RESIZE_BASE = true;
+                    RSA_RESIZE_MODULUS = true;
+                    RSA_RESIZE_MODULUS_APPEND = true;
+                    EC_HW_X = true;
                     break;
                 case J3H145:
+                    DEFERRED_INITIALIZATION = true;
+                    RSA_MOD_MULT_TRICK = true;
                     RSA_MULT_TRICK = true;
-                    RSA_MOD_EXP = false;
+                    RSA_MOD_EXP = true;
+                    RSA_MOD_EXP_PUB = true;
                     EC_HW_XY = true;
+                    EC_HW_ADD = true;
                     break;
                 case J3R180:
                     DEFERRED_INITIALIZATION = true;
+                    RSA_MOD_MULT_TRICK = true;
                     RSA_MULT_TRICK = true;
                     RSA_MOD_EXP = true;
                     EC_HW_XY = true;
@@ -947,12 +964,7 @@ public class jcmathlib {
         public final short COORD_SIZE; //Bytes
     
         //Parameters
-        public byte[] p;
-        public byte[] a;
-        public byte[] b;
-        public byte[] G;
-        public byte[] r;
-    
+        public byte[] p, a, b, G, r;
         public BigNat pBN, aBN, bBN, rBN;
     
         public KeyPair disposable_pair;
@@ -1271,7 +1283,7 @@ public class jcmathlib {
             this.allocatorType = -1; // no allocator
             this.value = valueBuffer;
         }
-    
+
         /**
          * Return current state of logical lock of this object
          *
@@ -2574,8 +2586,7 @@ public class jcmathlib {
         public void mod_mult(BigNat x, BigNat y, BigNat modulo) {
             BigNat tmp = rm.BN_E; // mod_mult is called from sqrt_FP => requires BN_E not being locked when mod_mult is called
     
-            // Perform fast multiplication using RSA trick
-            if(OperationSupport.getInstance().RSA_MULT_TRICK) {
+            if(OperationSupport.getInstance().RSA_MOD_MULT_TRICK) {
                 tmp.mod_mult_rsa_trick(x, y, modulo);
             } else {
                 tmp.resize_to_max(false);
@@ -2730,24 +2741,55 @@ public class jcmathlib {
     
             tmpMod.set_size(tmpSize);
     
-            // Verify if pre-allocated engine match the required values
-            if (rm.expPK.getSize() < (short) (modulo.length() * 8) || rm.expPK.getSize() < (short) (this.length() * 8)) {
-                ISOException.throwIt(ReturnCodes.SW_BIGNAT_MODULOTOOLARGE);
-            }
-            if (OperationSupport.getInstance().RSA_KEY_REFRESH) {
-                // Simulator fails when reusing the original object
-                rm.expPK = (RSAPrivateKey) KeyBuilder.buildKey(javacard.security.KeyBuilder.TYPE_RSA_PRIVATE, rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
-            }
-            rm.expPK.setExponent(exponent.as_byte_array(), (short) 0, exponent.length());
-            if (OperationSupport.getInstance().RSA_RESIZE_MODULUS) {
-                modulo.prepend_zeros(tmpSize, tmpBuffer, (short) 0);
-                rm.expPK.setModulus(tmpBuffer, (short) 0, tmpSize);
-                modLength = tmpSize;
+            if(OperationSupport.getInstance().RSA_MOD_EXP_PUB) {
+                // Verify if pre-allocated engine match the required values
+                if (rm.expPub.getSize() < (short) (modulo.length() * 8) || rm.expPub.getSize() < (short) (this.length() * 8)) {
+                    ISOException.throwIt(ReturnCodes.SW_BIGNAT_MODULOTOOLARGE);
+                }
+                if (OperationSupport.getInstance().RSA_KEY_REFRESH) {
+                    // Simulator fails when reusing the original object
+                    rm.expPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
+                }
+                rm.expPub.setExponent(exponent.as_byte_array(), (short) 0, exponent.length());
+                if (OperationSupport.getInstance().RSA_RESIZE_MODULUS) {
+                    if (OperationSupport.getInstance().RSA_RESIZE_MODULUS_APPEND) {
+                        modulo.append_zeros(tmpSize, tmpBuffer, (short) 0);
+                    } else {
+                        modulo.prepend_zeros(tmpSize, tmpBuffer, (short) 0);
+    
+                    }
+                    rm.expPub.setModulus(tmpBuffer, (short) 0, tmpSize);
+                    modLength = tmpSize;
+                } else {
+                    rm.expPub.setModulus(modulo.as_byte_array(), (short) 0, modulo.length());
+                    modLength = modulo.length();
+                }
+                rm.expCiph.init(rm.expPub, Cipher.MODE_DECRYPT);
             } else {
-                rm.expPK.setModulus(modulo.as_byte_array(), (short) 0, modulo.length());
-                modLength = modulo.length();
+                // Verify if pre-allocated engine match the required values
+                if (rm.expPriv.getSize() < (short) (modulo.length() * 8) || rm.expPriv.getSize() < (short) (this.length() * 8)) {
+                    ISOException.throwIt(ReturnCodes.SW_BIGNAT_MODULOTOOLARGE);
+                }
+                if (OperationSupport.getInstance().RSA_KEY_REFRESH) {
+                    // Simulator fails when reusing the original object
+                    rm.expPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, rm.MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
+                }
+                rm.expPriv.setExponent(exponent.as_byte_array(), (short) 0, exponent.length());
+                if (OperationSupport.getInstance().RSA_RESIZE_MODULUS) {
+                    if (OperationSupport.getInstance().RSA_RESIZE_MODULUS_APPEND) {
+                        modulo.append_zeros(tmpSize, tmpBuffer, (short) 0);
+                    } else {
+                        modulo.prepend_zeros(tmpSize, tmpBuffer, (short) 0);
+    
+                    }
+                    rm.expPriv.setModulus(tmpBuffer, (short) 0, tmpSize);
+                    modLength = tmpSize;
+                } else {
+                    rm.expPriv.setModulus(modulo.as_byte_array(), (short) 0, modulo.length());
+                    modLength = modulo.length();
+                }
+                rm.expCiph.init(rm.expPriv, Cipher.MODE_DECRYPT);
             }
-            rm.expCiph.init(rm.expPK, Cipher.MODE_DECRYPT);
             short len;
             if (OperationSupport.getInstance().RSA_RESIZE_BASE) {
                 this.prepend_zeros(modLength, tmpBuffer, (short) 0);
@@ -2769,6 +2811,9 @@ public class jcmathlib {
                 if (len != tmpSize) {
                     ISOException.throwIt(ReturnCodes.SW_ECPOINT_UNEXPECTED_KA_LEN);
                 }
+            }
+            if (OperationSupport.getInstance().RSA_MOD_EXP_EXTRA_MOD) {
+                tmpMod.mod(modulo);
             }
             tmpMod.shrink();
             this.clone(tmpMod);
@@ -2875,7 +2920,8 @@ public class jcmathlib {
         KeyAgreement ecAddKA;
         Signature verifyEcdsa;
         Cipher multCiph;
-        RSAPrivateKey expPK;
+        RSAPublicKey expPub;
+        RSAPrivateKey expPriv;
         Cipher expCiph;
     
         byte[] ARRAY_A, ARRAY_B, POINT_ARRAY_A, POINT_ARRAY_B, HASH_ARRAY;
@@ -2958,7 +3004,8 @@ public class jcmathlib {
             multCiph.init(multPK, Cipher.MODE_ENCRYPT);
     
             // RSA Exp Helpers
-            expPK = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
+            expPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
+            expPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
             expCiph = Cipher.getInstance(Cipher.ALG_RSA_NOPAD, false);
         }
     

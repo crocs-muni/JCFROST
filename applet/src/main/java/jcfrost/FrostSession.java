@@ -10,7 +10,8 @@ import static jcfrost.JCFROST.POINT_SIZE;
 import static jcfrost.JCFROST.secret;
 
 public class FrostSession {
-    private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
+    // private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
+    private RandomData rng = RandomData.getInstance(RandomData.ALG_SECURE_RANDOM);
 
     private short storedCommitments = 0;
     private short index = -1;
@@ -107,7 +108,8 @@ public class FrostSession {
             Util.arrayCopyNonAtomic(JCFROST.DEBUG_RANDOMNESS, JCFROST.DEBUG_RANDOMNESS_OFFSET, nonceBuffer, (short) 0, (short) 32);
             JCFROST.DEBUG_RANDOMNESS_OFFSET = (short) ((short) (JCFROST.DEBUG_RANDOMNESS_OFFSET + 32) % JCFROST.DEBUG_RANDOMNESS.length);
         } else {
-            rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
+            rng.generateData(nonceBuffer, (short) 0, (short) 32);
+            // rng.nextBytes(nonceBuffer, (short) 0, (short) 32);
         }
         Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, nonceBuffer, (short) 32, (short) 32); // TODO can be preloaded in RAM
         JCFROST.hasher.h3(nonceBuffer, (short) 0, (short) nonceBuffer.length, outputNonce);
@@ -197,5 +199,4 @@ public class FrostSession {
             groupCommitment.add(tmpPoint);
         }
     }
-
 }

@@ -132,7 +132,7 @@ javacard {
             // Here you can specify path to the SDK you want to use.
             // Only JC304 and higher are supported for targeting.
             // If JC310b43 is not used, targetsdk cannot be set.
-            targetsdk JC305
+            targetsdk JC304
 
             // Override java bytecode version if needed.
             // javaversion '1.7'
