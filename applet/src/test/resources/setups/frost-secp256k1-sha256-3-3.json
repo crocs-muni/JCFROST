@@ -1,0 +1,82 @@
+{
+  "config": {
+    "MAX_PARTICIPANTS": "3",
+    "NUM_PARTICIPANTS": "3",
+    "MIN_PARTICIPANTS": "3",
+    "name": "FROST(secp256k1, SHA-256)",
+    "group": "secp256k1",
+    "hash": "SHA-256"
+  },
+  "inputs": {
+    "group_secret_key": "9dcd01a45841403bf2260742e3e9c93310a3d81e06edaa2c3979c3f3eee19862",
+    "group_public_key": "0221e57f5f0585e175823b732c6ebd9f46266e0932b859b27615a53d3753eaa360",
+    "message": "74657374",
+    "share_polynomial_coefficients": [
+      "9731a7f714a5d7dbf0be94acc7e170bdd87d8191a0d842c98d416bfead3246f2",
+      "09e0e47c0b8ed477d387e581198ad5db130d6eddfac3dd8dfe35d16b43f02066"
+    ],
+    "participants": {
+      "1": {
+        "participant_share": "3edf8e177875ec8fb66c8170c5560fcd417feba6f3412a48051ea2d10fcdbe79"
+      },
+      "2": {
+        "participant_share": "f3b3e382afc841d321c2c6a0d9d8021c5325b9d2846505bb8d01831188d0669d"
+      },
+      "3": {
+        "participant_share": "bc4a01e5fe3840063428d6d3216fa022d03788d35bc7fc0f517da79bb97d0e4c"
+      }
+    }
+  },
+  "round_one_outputs": {
+    "participant_list": "1,2,3",
+    "participants": {
+      "1": {
+        "hiding_nonce_randomness": "386dabb2a7bbc7a4e59c931d76425a4e04a9abc80e88f4e71ced8f551611e5ce",
+        "binding_nonce_randomness": "540a1a69f816409b3313f15dbf42f2cb294762d3e545cf789f669494b6b2ed13",
+        "hiding_nonce": "03f6d47de2bb18c16d31c62506c82e923d24a2f7f4b2019c71ffb5fec57f27fb",
+        "binding_nonce": "7f45805bd60e8f22d08a53679b09a1d1897c27dee92d9898cc02a29623b8e241",
+        "hiding_nonce_commitment": "02b201923277224d982abe2a002754473eba9f4a21de89264d5f68057ee9095ca3",
+        "binding_nonce_commitment": "02a5dc84f0d10657603f538796324857c2cc78fbf5a1f52e0fa811d726d1e48d59",
+        "binding_factor_input": "a645d8249457bbcac34fa7b740f66bcce08fc39506b8bbf1a1c81092f6272edaffb543df3987bba98af48e84981665611e3640e600609c9c2385aff113389c490000000000000000000000000000000000000000000000000000000000000001",
+        "binding_factor": "38a9811216fca59d7000e108706da43ef8299e83c252dd88b9ba38efaf05d055"
+      },
+      "2": {
+        "hiding_nonce_randomness": "df6c8dcd90d4688c66aae02f4529a0eaec03b6b31007e63f5f8b41a7c113b196",
+        "binding_nonce_randomness": "0fda72ef4396463d797a158c38d4e99a7934479deee830bc67e1b0a635b2490f",
+        "hiding_nonce": "5cec8de95919b5807f958c660f7b574f4a2f98e7e6411b2a42f9456f21082f6e",
+        "binding_nonce": "cb0c103e83d35033bf9096e1e9e9f2f0266e904b9169e11d021561667f65e39d",
+        "hiding_nonce_commitment": "02534190127304e2ee2efa2330b78fac88db781978c3fcd2653ba66eca0b5be41f",
+        "binding_nonce_commitment": "02100f69ec0a49cf4ab6c3fc35df957c7d05c6181e21b0601100c229d9654a20d7",
+        "binding_factor_input": "a645d8249457bbcac34fa7b740f66bcce08fc39506b8bbf1a1c81092f6272edaffb543df3987bba98af48e84981665611e3640e600609c9c2385aff113389c490000000000000000000000000000000000000000000000000000000000000002",
+        "binding_factor": "4e497139284c06ed9c2f1667f62b35ec83505e1bd49c56b5433f3178725cbf41"
+      },
+      "3": {
+        "hiding_nonce_randomness": "a5c696e706efcf518eb2e88133dd4c7d5f83aee972ecd22e86a241a75adad17b",
+        "binding_nonce_randomness": "119c0e3ec7242e5e2c2c5bc1135203a5b68ddca1e1eaa790735aac340d78a3fc",
+        "hiding_nonce": "65b15a6d428ec24f117a2fd79e7735c9ae66ee5efada9c7da97a5e867022008e",
+        "binding_nonce": "2d38f8e8f1591ef06b2b272669fc576b07e2fca326a0aac7493de7e18d1ba81d",
+        "hiding_nonce_commitment": "03fd91768e5a3975e123887d37461da95066d0eb0435cbafb27662b26a8efc66b7",
+        "binding_nonce_commitment": "02cd1424d28fbbcce0cbfce5d8ba0d37e6caebbbdbead552f1b95ede4b0c8f0f09",
+        "binding_factor_input": "a645d8249457bbcac34fa7b740f66bcce08fc39506b8bbf1a1c81092f6272edaffb543df3987bba98af48e84981665611e3640e600609c9c2385aff113389c490000000000000000000000000000000000000000000000000000000000000003",
+        "binding_factor": "51eece45a7b9967b47b5d40354717a7158320d27b9b2fe52b54096c849e94810"
+      }
+    }
+  },
+  "round_two_outputs": {
+    "participant_list": "1,2,3",
+    "participants": {
+      "1": {
+        "sig_share": "1fec6cd60fabe88e9397947274ef1ac9ef19b892ddb9559ae103c064c3649301"
+      },
+      "2": {
+        "sig_share": "ef6a6122df200fd8eb7080079f49ace6d41617354663afb5e7b3ccb5d4392262"
+      },
+      "3": {
+        "sig_share": "9e425d1ae5929691cdc7fe67cfb20f6f14c3163e4d4f62dae232821369a53920"
+      }
+    }
+  },
+  "final_output": {
+    "sig": "038fd4a371c131b036970a56d428b79dc2dda05e23e0afb3523432112369ebf655ad992b13d45e8ef94cd012e1e3ead7211d44091fc223c7efeb17b0a1310cad42"
+  }
+}

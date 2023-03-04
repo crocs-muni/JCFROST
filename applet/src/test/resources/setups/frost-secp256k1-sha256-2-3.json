@@ -1,0 +1,68 @@
+{
+  "config": {
+    "MAX_PARTICIPANTS": "3",
+    "NUM_PARTICIPANTS": "2",
+    "MIN_PARTICIPANTS": "2",
+    "name": "FROST(secp256k1, SHA-256)",
+    "group": "secp256k1",
+    "hash": "SHA-256"
+  },
+  "inputs": {
+    "group_secret_key": "c2ec0fba877aa11a2a77a74a95a667ca68ba6badba1dbcd01e4cbbfd83e5dbdf",
+    "group_public_key": "02700c0d1fdab564c4849ed2e5219ecb6187b69d3c58a636c6463311bac2dd4685",
+    "message": "74657374",
+    "share_polynomial_coefficients": [
+      "b88766fcb0664eaf7bbc1e01817cf8b34f7b196b6f33b45bb009236e5c98c8b1"
+    ],
+    "participants": {
+      "1": {
+        "participant_share": "7b7376b737e0efc9a633c54c1723607efd86a8327a08d0f00e8380df1048634f"
+      },
+      "2": {
+        "participant_share": "33faddb3e8473e7921efe34d98a059339252e4b739f3e50ffeba45c09caaeabf"
+      },
+      "3": {
+        "participant_share": "ec8244b098ad8d289dac014f1a1d51e6e1cdfe22a927996baec3692ef943b370"
+      }
+    }
+  },
+  "round_one_outputs": {
+    "participant_list": "1,2",
+    "participants": {
+      "1": {
+        "hiding_nonce_randomness": "6f837dcc7ce5785cffade7f6f3720a50a8da49bd0991f2a6ab05e6775070fc12",
+        "binding_nonce_randomness": "beccca3d88730eb7ca80dc65588ebfb2634ba0ee99ea3958e4a7680cc14c5a3c",
+        "hiding_nonce": "3e415bf577167c9107d1f73047c9a6a73376d34b74b6b7ee40949c971edebae8",
+        "binding_nonce": "5b1e92f5f93f2641439954301c359feff2e9d1d35c34b0eb1b5ffb5337412899",
+        "hiding_nonce_commitment": "03a422d2a74a296717c060f55b14b93f005466e771e56a3fea05caf851f0d00835",
+        "binding_nonce_commitment": "02a40fc694ba1d60a74c175cd7bbf55179f7c7a8f7aafbef05592fa9318056969a",
+        "binding_factor_input": "a645d8249457bbcac34fa7b740f66bcce08fc39506b8bbf1a1c81092f6272edafe95543c29b521d4eef831c265a39bc403da32154fed1b02003d7f752715780c0000000000000000000000000000000000000000000000000000000000000001",
+        "binding_factor": "752874121fc5d8de3d7d7c6c5da36a2ea06ec869beb783737adff3152cfb5cab"
+      },
+      "2": {
+        "hiding_nonce_randomness": "7b11c25fff06c3681579ba627386faf364dbadd7c75befa47adec98d206d052f",
+        "binding_nonce_randomness": "1bba75c96012f91b51e3fae04873a1202b53a6acf434ffc52088f0e83cbd72ed",
+        "hiding_nonce": "44b1b5779952843285f06a6fed9261bfd895ef8c0b24d47736bb27b0de9df788",
+        "binding_nonce": "845edec711a1fc8fb74fde5149d43ba8a8534e029bf58eab1c6f0d369f72180a",
+        "hiding_nonce_commitment": "03d9e8a75ceac3f63027f948115eda769bf4e45f7103792baaae220601840e1414",
+        "binding_nonce_commitment": "0391ddace3301b034b1ae9f573625cc623d9f6349475e616400e097187353ed81f",
+        "binding_factor_input": "a645d8249457bbcac34fa7b740f66bcce08fc39506b8bbf1a1c81092f6272edafe95543c29b521d4eef831c265a39bc403da32154fed1b02003d7f752715780c0000000000000000000000000000000000000000000000000000000000000002",
+        "binding_factor": "ad4899ab9ee28a858ed33b033cecef35dcfa35f3d3ce06b38f4abb8793e70d59"
+      }
+    }
+  },
+  "round_two_outputs": {
+    "participant_list": "1,2",
+    "participants": {
+      "1": {
+        "sig_share": "7cde207631316db36f4d963d19439db389edbae3cfc18fb99a498b1a959cf03b"
+      },
+      "2": {
+        "sig_share": "8857ff3b889cb70fdf6c363bfb31eb0ae6736a646f329dafdd0ffa65850305c7"
+      }
+    }
+  },
+  "final_output": {
+    "sig": "026b2812861c12c918c8991e9904aba64a1a33e0af9ef95b65638532867a2e8eec05361fb1b9ce24c34eb9cc79147588bfb5b248618fab8d2db78726f34a69b4c1"
+  }
+}
