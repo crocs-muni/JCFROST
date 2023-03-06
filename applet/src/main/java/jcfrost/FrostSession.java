@@ -6,8 +6,7 @@ import javacard.framework.Util;
 import javacard.security.RandomData;
 import jcfrost.jcmathlib.*;
 
-import static jcfrost.JCFROST.POINT_SIZE;
-import static jcfrost.JCFROST.secret;
+import static jcfrost.JCFROST.*;
 
 public class FrostSession {
     // private RandomData rng = RandomData.getInstance(RandomData.ALG_KEYGENERATION);
@@ -88,7 +87,7 @@ public class FrostSession {
         }
         computeBindingFactors(msg, msgOffset, msgLength);
         computeGroupCommitment();
-        computeLambda();
+        computeLambdaOptimized();
         computeChallenge(msg, msgOffset, msgLength);
         challenge.mod_mult(challenge, lambda, JCFROST.curve.rBN);
         challenge.mod_mult(challenge, secret, JCFROST.curve.rBN);
@@ -144,6 +143,48 @@ public class FrostSession {
             tmp.mod_sub(identifierBuffer, JCFROST.curve.rBN);
             denominator.mod_mult(denominator, tmp, JCFROST.curve.rBN);
         }
+        denominator.mod_inv(JCFROST.curve.rBN);
+        lambda.mod_mult(numerator, denominator, JCFROST.curve.rBN);
+    }
+
+    private void computeLambdaOptimized() {
+        if(maxParties > 8) {
+            ISOException.throwIt(Consts.E_TOO_MANY_PARTIES);
+        }
+        short numeratorAcc;
+        short denominatorAcc;
+        short j;
+        if(index != (short) 0) {
+            numeratorAcc = commitments[0].identifier;
+            denominatorAcc = (short) (commitments[0].identifier - commitments[index].identifier);
+            j = 1;
+        } else {
+            numeratorAcc = commitments[1].identifier;
+            denominatorAcc = (short) (commitments[1].identifier - commitments[index].identifier);
+            j = 2;
+        }
+
+        for(; j < storedCommitments; ++j) {
+            if(j == index) {
+                continue;
+            }
+            numeratorAcc *= commitments[j].identifier;
+            denominatorAcc *= (short) (commitments[j].identifier - commitments[index].identifier);
+        }
+        numerator.as_byte_array()[31] = (byte) (numeratorAcc & 0xff);
+        numerator.as_byte_array()[30] = (byte) ((short) (numeratorAcc >> 8) & 0xff);
+        if(denominatorAcc < 0) {
+            denominatorAcc *= -1;
+            tmp.zero();
+            tmp.as_byte_array()[31] = (byte) (denominatorAcc & 0xff);
+            tmp.as_byte_array()[30] = (byte) ((short) (denominatorAcc >> 8) & 0xff);
+            denominator.copy(JCFROST.curve.rBN);
+            denominator.subtract(tmp);
+        } else {
+            denominator.as_byte_array()[31] = (byte) (denominatorAcc & 0xff);
+            denominator.as_byte_array()[30] = (byte) ((short) (denominatorAcc >> 8) & 0xff);
+        }
+
         denominator.mod_inv(JCFROST.curve.rBN);
         lambda.mod_mult(numerator, denominator, JCFROST.curve.rBN);
     }
