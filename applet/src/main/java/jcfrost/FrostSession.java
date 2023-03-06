@@ -89,12 +89,7 @@ public class FrostSession {
         computeGroupCommitment();
         computeLambdaOptimized();
         computeChallenge(msg, msgOffset, msgLength);
-        challenge.mod_mult(challenge, lambda, JCFROST.curve.rBN);
-        challenge.mod_mult(challenge, secret, JCFROST.curve.rBN);
-        tmp.mod_mult(bindingNonce, bindingFactors[index], JCFROST.curve.rBN);
-        tmp.mod_add(hidingNonce, JCFROST.curve.rBN);
-        tmp.mod_add(challenge, JCFROST.curve.rBN);
-        tmp.copy_to_buffer(output, outputOffset);
+        computeSignatureShare(output, outputOffset);
     }
 
     public void reset() {
@@ -245,5 +240,14 @@ public class FrostSession {
             tmpPoint.multAndAdd(bindingFactors[j], tmpPoint2);
             groupCommitment.add(tmpPoint);
         }
+    }
+
+    private void computeSignatureShare(byte[] output, short outputOffset) {
+        challenge.mod_mult(challenge, lambda, JCFROST.curve.rBN);
+        challenge.mod_mult(challenge, secret, JCFROST.curve.rBN);
+        tmp.mod_mult(bindingNonce, bindingFactors[index], JCFROST.curve.rBN);
+        tmp.mod_add(hidingNonce, JCFROST.curve.rBN);
+        tmp.mod_add(challenge, JCFROST.curve.rBN);
+        tmp.copy_to_buffer(output, outputOffset);
     }
 }
