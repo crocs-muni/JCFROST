@@ -25,16 +25,10 @@ public class jcmathlib {
         public static final short SW_BIGNAT_MODULOTOOLARGE          = (short) 0x7002;
         public static final short SW_BIGNAT_INVALIDCOPYOTHER        = (short) 0x7003;
         public static final short SW_BIGNAT_INVALIDRESIZE           = (short) 0x7004;
-        public static final short SW_LOCK_ALREADYLOCKED             = (short) 0x7005;
-        public static final short SW_LOCK_NOTLOCKED                 = (short) 0x7006;
-        public static final short SW_LOCK_OBJECT_NOT_FOUND          = (short) 0x7007;
-        public static final short SW_LOCK_NOFREESLOT                = (short) 0x7008;
-        public static final short SW_LOCK_OBJECT_MISMATCH           = (short) 0x7009;
         public static final short SW_ECPOINT_INVALIDLENGTH          = (short) 0x700a;
         public static final short SW_ECPOINT_UNEXPECTED_KA_LEN      = (short) 0x700b;
         public static final short SW_ALLOCATOR_INVALIDOBJID         = (short) 0x700c;
         public static final short SW_OPERATION_NOT_SUPPORTED        = (short) 0x700d;
-        public static final short SW_NOT_INITIALIZED                = (short) 0x700e;
         public static final short SW_ECPOINT_INVALID                = (short) 0x700f;
     }
     
@@ -79,19 +73,7 @@ public class jcmathlib {
             pointKeyPair = curve.newKeyPair(pointKeyPair);
             point = (ECPublicKey) pointKeyPair.getPublic();
         }
-    
-        /**
-         * Generates new random point value.
-         */
-        public void randomize() {
-            if (pointKeyPair == null) {
-                pointKeyPair = curve.newKeyPair(null);
-                point = (ECPublicKey) pointKeyPair.getPublic();
-            } else {
-                pointKeyPair.genKeyPair();
-            }
-        }
-    
+
         /**
          * Copy value of provided point into this. This and other point must have
          * curve with same parameters, only length is checked.
@@ -143,32 +125,6 @@ public class jcmathlib {
         }
     
         /**
-         * Returns curve associated with this point. No copy of curve is made
-         * before return, so change of returned object will also change curve for
-         * this point.
-         *
-         * @return curve as ECCurve object
-         */
-        public ECCurve getCurve() {
-            return curve;
-        }
-    
-        /**
-         * Returns the X coordinate of this point in uncompressed form.
-         *
-         * @param buffer output array for X coordinate
-         * @param offset start offset within output array
-         * @return length of X coordinate (in bytes)
-         */
-        public short getX(byte[] buffer, short offset) {
-            byte[] pointBuffer = rm.POINT_ARRAY_A;
-    
-            point.getW(pointBuffer, (short) 0);
-            Util.arrayCopyNonAtomic(pointBuffer, (short) 1, buffer, offset, curve.COORD_SIZE);
-            return curve.COORD_SIZE;
-        }
-    
-        /**
          * Returns the Y coordinate of this point in uncompressed form.
          *
          * @param buffer output array for Y coordinate
@@ -182,16 +138,7 @@ public class jcmathlib {
             Util.arrayCopyNonAtomic(pointBuffer, (short) (1 + curve.COORD_SIZE), buffer, offset, curve.COORD_SIZE);
             return curve.COORD_SIZE;
         }
-    
-        /**
-         * Returns the Y coordinate of this point in form of BigNat object.
-         *
-         * @param yCopy BigNat object which will be set with value of this point
-         */
-        public void getY(BigNat yCopy) {
-            yCopy.set_size(getY(yCopy.as_byte_array(), (short) 0));
-        }
-    
+
         /**
          * Double this point. Pure implementation without KeyAgreement.
          */
@@ -228,17 +175,6 @@ public class jcmathlib {
             tmp.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
     
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-        }
-    
-    
-        /**
-         * Doubles the current value of this point.
-         */
-        public void makeDouble() {
-            // doubling via add sometimes causes exception inside KeyAgreement engine
-            // this.add(this);
-            // Use bit slower, but more robust version via multiplication by 2
-            this.multiplication(ResourceManager.TWO);
         }
     
         /**
@@ -400,12 +336,15 @@ public class jcmathlib {
          * @param point the other point
          */
         public void multAndAdd(BigNat scalar, ECPoint point) {
-            if (!OperationSupport.getInstance().EC_HW_ADD) {
-                ISOException.throwIt(ReturnCodes.SW_OPERATION_NOT_SUPPORTED);
+            if (OperationSupport.getInstance().EC_HW_ADD) {
+                byte[] pointBuffer = rm.POINT_ARRAY_B;
+
+                setW(pointBuffer, (short) 0, multAndAddKA(scalar, point, pointBuffer, (short) 0));
+            } else {
+                multiplication(scalar);
+                add(point);
             }
-            byte[] pointBuffer = rm.POINT_ARRAY_B;
-    
-            setW(pointBuffer, (short) 0, multAndAddKA(scalar, point, pointBuffer, (short) 0));
+
         }
     
         /**
@@ -528,37 +467,6 @@ public class jcmathlib {
         }
     
         /**
-         * Computes negation of this point.
-         * The operation will dump point into uncompressed_point_arr, negate Y and restore back
-         */
-        public void negate() {
-            byte[] pointBuffer = rm.POINT_ARRAY_A;
-            BigNat y = rm.EC_BN_C;
-    
-            point.getW(pointBuffer, (short) 0);
-            y.set_size(curve.COORD_SIZE);
-            y.from_byte_array(curve.COORD_SIZE, (short) 0, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            y.mod_negate(curve.pBN);
-            y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
-            setW(pointBuffer, (short) 0, curve.POINT_SIZE);
-        }
-    
-        /**
-         * Restore point from X coordinate. Stores one of the two results into this point.
-         *
-         * @param xCoord  byte array containing the X coordinate
-         * @param xOffset offset in the byte array
-         * @param xLen    length of the X coordinate
-         */
-        public void fromX(byte[] xCoord, short xOffset, short xLen) {
-            BigNat x = rm.EC_BN_F;
-    
-            x.set_size(xLen);
-            x.from_byte_array(xLen, (short) 0, xCoord, xOffset);
-            fromX(x);
-        }
-    
-        /**
          * Restore point from X coordinate. Stores one of the two results into this point.
          *
          * @param x the x coordinate
@@ -583,20 +491,7 @@ public class jcmathlib {
             y.prepend_zeros(curve.COORD_SIZE, pointBuffer, (short) (1 + curve.COORD_SIZE));
             setW(pointBuffer, (short) 0, curve.POINT_SIZE);
         }
-    
-        /**
-         * Returns true if Y coordinate is even; false otherwise.
-         *
-         * @return true if Y coordinate is even; false otherwise
-         */
-        public boolean isYEven() {
-            byte[] pointBuffer = rm.POINT_ARRAY_A;
-    
-            point.getW(pointBuffer, (short) 0);
-            boolean result = pointBuffer[(short) (curve.POINT_SIZE - 1)] % 2 == 0;
-            return result;
-        }
-    
+
         /**
          * Compares this and provided point for equality. The comparison is made using hash of both values to prevent leak of position of mismatching byte.
          *
@@ -722,67 +617,6 @@ public class jcmathlib {
                 output[offset] = (byte) 0x04;
             }
             return (short) (2 * curve.COORD_SIZE + 1);
-        }
-    
-    
-    
-        //
-        // ECKey methods
-        //
-        public void setFieldFP(byte[] bytes, short s, short s1) throws CryptoException {
-            point.setFieldFP(bytes, s, s1);
-        }
-    
-        public void setFieldF2M(short s) throws CryptoException {
-            point.setFieldF2M(s);
-        }
-    
-        public void setFieldF2M(short s, short s1, short s2) throws CryptoException {
-            point.setFieldF2M(s, s1, s2);
-        }
-    
-        public void setA(byte[] bytes, short s, short s1) throws CryptoException {
-            point.setA(bytes, s, s1);
-        }
-    
-        public void setB(byte[] bytes, short s, short s1) throws CryptoException {
-            point.setB(bytes, s, s1);
-        }
-    
-        public void setG(byte[] bytes, short s, short s1) throws CryptoException {
-            point.setG(bytes, s, s1);
-        }
-    
-        public void setR(byte[] bytes, short s, short s1) throws CryptoException {
-            point.setR(bytes, s, s1);
-        }
-    
-        public void setK(short s) {
-            point.setK(s);
-        }
-    
-        public short getField(byte[] bytes, short s) throws CryptoException {
-            return point.getField(bytes, s);
-        }
-    
-        public short getA(byte[] bytes, short s) throws CryptoException {
-            return point.getA(bytes, s);
-        }
-    
-        public short getB(byte[] bytes, short s) throws CryptoException {
-            return point.getB(bytes, s);
-        }
-    
-        public short getG(byte[] bytes, short s) throws CryptoException {
-            return point.getG(bytes, s);
-        }
-    
-        public short getR(byte[] bytes, short s) throws CryptoException {
-            return point.getR(bytes, s);
-        }
-    
-        public short getK() throws CryptoException {
-            return point.getK();
         }
     }
     
@@ -1123,19 +957,6 @@ public class jcmathlib {
             disposable_priv.setS(bn.as_byte_array(), (short) 0, bn.length());
             return disposable_priv;
         }
-    
-        /**
-         * Set new G for this curve. Also updates all dependent key values.
-         * @param newG buffer with new G
-         * @param newGOffset start offset within newG
-         * @param newGLen length of new G
-         */
-        public void setG(byte[] newG, short newGOffset, short newGLen) {
-            Util.arrayCopyNonAtomic(newG, newGOffset, G, (short) 0, newGLen);
-            this.disposable_pair = this.newKeyPair(this.disposable_pair);
-            this.disposable_priv = (ECPrivateKey) this.disposable_pair.getPrivate();
-            this.disposable_priv.setG(newG, newGOffset, newGLen);
-        }
     }
     /**
      * Credits: Based on Bignat library from OV-chip project https://ovchip.cs.ru.nl/OV-chip_2.0 by Radboud University Nijmegen
@@ -1155,18 +976,6 @@ public class jcmathlib {
          * operation if required (keep false to prevent slow reallocations)
          */
         boolean ALLOW_RUNTIME_REALLOCATION = false;
-    
-        /**
-         * Configuration flag controlling clearing of shared BigNats on lock as prevention of unwanted leak of sensitive information from previous operation.
-         * If true, internal storage array is erased once BigNat is locked for use
-         */
-        boolean ERASE_ON_LOCK = false;
-        /**
-         * Configuration flag controlling clearing of shared Bignats on unlock as
-         * prevention of unwanted leak of sensitive information to next operation.
-         * If true, internal storage array is erased once Bignat is unlocked from use
-         */
-        boolean ERASE_ON_UNLOCK = false;
     
         /**
          * Factor for converting digit size into short length. 1 for the short/short
@@ -1879,42 +1688,7 @@ public class jcmathlib {
             return false;
         }
     
-        /**
-         * Compares this and other BigNat.
-         *
-         * @param other other value to compare with
-         * @return true if this BigNat is smaller, false if bigger or equal
-         */
-        public boolean smaller(BigNat other) {
-            short index_this = 0;
-            for (short i = 0; i < this.length(); i++) {
-                if (this.value[i] != 0x00) {
-                    index_this = i;
-                }
-            }
-    
-            short index_other = 0;
-            for (short i = 0; i < other.length(); i++) {
-                if (other.value[i] != 0x00) {
-                    index_other = i;
-                }
-            }
-    
-            if ((short) (this.length() - index_this) < (short) (other.length() - index_other)) {
-                return true; // CTO
-            }
-            short i = 0;
-            while (i < this.length() && i < other.length()) {
-                if (((short) (this.value[i] & digit_mask)) < ((short) (other.value[i] & digit_mask))) {
-                    return true; // CTO
-                }
-                i = (short) (1 + i);
-            }
-    
-            return false;
-        }
-    
-    
+
         /**
          * Comparison of this and other.
          *
@@ -2265,31 +2039,6 @@ public class jcmathlib {
     
     
         /**
-         * Scaled addition. Add {@code mult * other} to this number. {@code mult}
-         * must be below {@link #bignat_base}, that is, it must fit into one digit.
-         * It is only declared as a short here to avoid negative numbers.
-         * <p>
-         * Asserts (overly restrictive) that this and other have the same size.
-         * <p>
-         * Same as {@link #times_add_shift times_add_shift}{@code (other, 0, mult)}
-         * but without the shift overhead.
-         * <p>
-         * Used in multiplication.
-         *
-         * @param other Bignat to add
-         * @param mult  of short, factor to multiply {@code other} with before
-         *              addition. Must be less than {@link #bignat_base}.
-         */
-        public void times_add(BigNat other, short mult) {
-            short akku = 0;
-            for (short i = (short) (size - 1); i >= 0; i--) {
-                akku = (short) (akku + (short) (this.value[i] & digit_mask) + (short) (mult * (other.value[i] & digit_mask)));
-                this.value[i] = (byte) (akku & digit_mask);
-                akku = (short) ((akku >> digit_len) & digit_mask);
-            }
-        }
-    
-        /**
          * Scaled addition. Adds {@code mult * other * 2^(}{@link #digit_len}
          * {@code * shift)} to this. That is, shifts other {@code shift} digits to
          * the left, multiplies it with {@code mult} and adds then.
@@ -2321,20 +2070,7 @@ public class jcmathlib {
             this.value[j] = (byte) (akku & digit_mask);
             // BUGUG: assert no overflow
         }
-    
-        /**
-         * Division of this bignat by provided other bignat.
-         *
-         * @param other value of divisor
-         */
-        public void divide(BigNat other) {
-            BigNat tmp = rm.BN_E;
-    
-            tmp.clone(this);
-            tmp.remainder_divide(other, this);
-            this.clone(tmp);
-        }
-    
+
         /**
          * Greatest common divisor of this BigNat with other BigNat. Result is
          * stored into this.
@@ -2357,43 +2093,7 @@ public class jcmathlib {
             }
     
         }
-    
-        /**
-         * Decides whether the arguments are coprime or not.
-         *
-         * @param a BigNat value
-         * @param b BigNat value
-         * @return true if coprime, false otherwise
-         */
-        public boolean is_coprime(BigNat a, BigNat b) {
-            BigNat tmp = rm.BN_C; // is_coprime calls gcd internally
-    
-            tmp.clone(a);
-    
-            tmp.gcd(b);
-            return tmp.same_value(ResourceManager.ONE);
-        }
-    
-        /**
-         * Computes base^exp and stores result into this bignat
-         *
-         * @param base value of base
-         * @param exp  value of exponent
-         */
-        public void exponentiation(BigNat base, BigNat exp) {
-            BigNat tmp = rm.BN_A;
-            BigNat i = rm.BN_B;
-    
-            this.one();
-            i.set_size(exp.length());
-            i.zero();
-            tmp.set_size((short) (2 * this.length()));
-            for (; i.lesser(exp); i.increment_one()) {
-                tmp.mult(this, base);
-                this.copy(tmp);
-            }
-        }
-    
+
         /**
          * Multiplication. Automatically selects fastest available algorithm.
          * Stores {@code x * y} in this. To ensure this is big
@@ -2596,21 +2296,7 @@ public class jcmathlib {
             }
             this.clone(tmp);
         }
-        // Potential speedup for  modular multiplication
-        // Binomial theorem: (op1 + op2)^2 - (op1 - op2)^2 = 4 * op1 * op2 mod (mod)
-    
-    
-        /**
-         * One digit left shift.
-         * <p>
-         * Asserts that the first digit is zero.
-         */
-        public void shift_left() {
-            // NOTE: assumes that overlapping src and dest arrays are properly handled by Util.arrayCopyNonAtomic
-            Util.arrayCopyNonAtomic(this.value, (short) 1, this.value, (short) 0, (short) (size - 1));
-            value[(short) (size - 1)] = 0;
-        }
-    
+
         /**
          * Optimized division by value two with carry
          *
@@ -3008,30 +2694,6 @@ public class jcmathlib {
             expPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MODULO_RSA_ENGINE_MAX_LENGTH_BITS, false);
             expCiph = Cipher.getInstance(Cipher.ALG_RSA_NOPAD, false);
         }
-    
-        /**
-         * Erase all values stored in helper objects
-         */
-        void erase() {
-            BN_A.erase();
-            BN_B.erase();
-            BN_C.erase();
-            BN_D.erase();
-            BN_E.erase();
-            BN_F.erase();
-    
-            EC_BN_A.erase();
-            EC_BN_B.erase();
-            EC_BN_C.erase();
-            EC_BN_D.erase();
-            EC_BN_E.erase();
-            EC_BN_F.erase();
-    
-            Util.arrayFillNonAtomic(ARRAY_A, (short) 0, (short) ARRAY_A.length, (byte) 0);
-            Util.arrayFillNonAtomic(ARRAY_B, (short) 0, (short) ARRAY_B.length, (byte) 0);
-            Util.arrayFillNonAtomic(POINT_ARRAY_A, (short) 0, (short) POINT_ARRAY_A.length, (byte) 0);
-            Util.arrayFillNonAtomic(RAM_WORD, (short) 0, (short) RAM_WORD.length, (byte) 0);
-        }
     }
     
     public static class SecP256k1 {
@@ -3220,22 +2882,6 @@ public class jcmathlib {
             }
         }
     
-        /**
-         * Returns number of bytes allocated in RAM via {@code allocateByteArray()} since last reset of counters.
-         * @return number of bytes allocated in RAM via this control object
-         */
-        public short getAllocatedInRAM() {
-            return allocatedInRAM;
-        }
-        /**
-         * Returns number of bytes allocated in EEPROM via {@code allocateByteArray()}
-         * since last reset of counters.
-         *
-         * @return number of bytes allocated in EEPROM via this control object
-         */
-        public short getAllocatedInEEPROM() {
-            return allocatedInEEPROM;
-        }
         /**
          * Resets counters of allocated bytes in RAM and EEPROM
          */
