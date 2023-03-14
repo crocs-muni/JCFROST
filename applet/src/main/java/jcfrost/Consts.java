@@ -19,6 +19,7 @@ public class Consts {
     public final static short E_IDENTIFIER_ORDERING = (short) 0xee06;
     public final static short E_NOT_ENOUGH_COMMITMENTS = (short) 0xee07;
     public final static short E_IDENTIFIER_NOT_INCLUDED = (short) 0xee08;
+    public final static short E_COMMITMENT_MISMATCH = (short) 0xee09;
 
     public final static short SW_Exception = (short) 0xff01;
     public final static short SW_ArrayIndexOutOfBoundsException = (short) 0xff02;

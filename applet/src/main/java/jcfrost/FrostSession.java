@@ -69,7 +69,16 @@ public class FrostSession {
         }
         if(commitments[storedCommitments].identifier == JCFROST.identifier) {
             index = storedCommitments;
-            // TODO check if provided commitments match local commitments
+            hidingPoint.encode(ramArray, (short) 0, POINT_SIZE == 33);
+            if(Util.arrayCompare(ramArray, (short) 0, data, offset, POINT_SIZE) != 0) {
+                reset();
+                ISOException.throwIt(Consts.E_COMMITMENT_MISMATCH);
+            }
+            bindingPoint.encode(ramArray, (short) 0, POINT_SIZE == 33);
+            if(Util.arrayCompare(ramArray, (short) 0, data, (short) (offset + POINT_SIZE), POINT_SIZE) != 0) {
+                reset();
+                ISOException.throwIt(Consts.E_COMMITMENT_MISMATCH);
+            }
         }
         Util.arrayCopyNonAtomic(data, offset, commitments[storedCommitments].hiding, (short) 0, POINT_SIZE);
         Util.arrayCopyNonAtomic(data, (short) (offset + POINT_SIZE), commitments[storedCommitments].binding, (short) 0, POINT_SIZE);
