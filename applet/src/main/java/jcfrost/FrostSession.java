@@ -78,7 +78,7 @@ public class FrostSession {
 
     public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
         if(storedCommitments < JCFROST.minParties) {
-            reset(); // TODO keep it?
+            reset();
             ISOException.throwIt(Consts.E_NOT_ENOUGH_COMMITMENTS);
         }
         if(index == -1) {
@@ -87,7 +87,11 @@ public class FrostSession {
         }
         computeBindingFactors(msg, msgOffset, msgLength);
         computeGroupCommitment();
-        computeLambdaOptimized();
+        if(maxParties <= 12) {
+            computeLambdaOptimized();
+        } else {
+            computeLambda();
+        }
         computeChallenge(msg, msgOffset, msgLength);
         computeSignatureShare(output, outputOffset);
     }

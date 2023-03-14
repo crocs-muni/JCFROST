@@ -44,5 +44,5 @@ public class Consts {
     final static byte[] ZERO = {(byte) 0x00};
     final static byte[] ONE = {(byte) 0x01};
     final static byte[] TWO = {(byte) 0x02};
-    final static byte MAX_PARTIES = (byte) 10;
+    final static byte MAX_PARTIES = (byte) 12;
 }
