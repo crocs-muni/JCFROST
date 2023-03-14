@@ -12,14 +12,14 @@ import javacard.security.RSAPrivateKey;
 import javacard.security.RSAPublicKey;
 import javacardx.crypto.Cipher;
 
+/**
+ * Extended version of JCMathLib library (https://github.com/OpenCryptoProject/JCMathLib).
+ *
+ * Compressed into a single file.
+ */
 public class jcmathlib {
-    
-    /**
-     *
-    * @author Vasilios Mavroudis and Petr Svenda
-     */
+
     public static class ReturnCodes {
-        // Custom error response codes
         public static final short SW_BIGNAT_RESIZETOLONGER          = (short) 0x7000;
         public static final short SW_BIGNAT_REALLOCATIONNOTALLOWED  = (short) 0x7001;
         public static final short SW_BIGNAT_MODULOTOOLARGE          = (short) 0x7002;
@@ -32,10 +32,6 @@ public class jcmathlib {
         public static final short SW_ECPOINT_INVALID                = (short) 0x700f;
     }
     
-    
-    /**
-     * @author Vasilios Mavroudis and Petr Svenda and Antonin Dufka
-     */
     public static class ECPoint {
         private final ResourceManager rm;
     
@@ -622,8 +618,6 @@ public class jcmathlib {
     
     /**
      * OperationSupport class
-     *
-     * @author Antonin Dufka
      */
     public static class OperationSupport {
         private static OperationSupport instance;
@@ -708,7 +702,6 @@ public class jcmathlib {
     
     /**
      * Configure itself to proper lengths and other parameters according to intended length of ECC
-     * @author Petr Svenda
      */
     public static class ECConfig {
         /**
@@ -787,11 +780,6 @@ public class jcmathlib {
         }
     }
     
-    
-    /**
-     *
-     * @author Vasilios Mavroudis and Petr Svenda
-     */
     public static class ECCurve {
         public final short KEY_LENGTH; //Bits
         public final short POINT_SIZE; //Bytes
@@ -958,13 +946,9 @@ public class jcmathlib {
             return disposable_priv;
         }
     }
+
     /**
      * Credits: Based on Bignat library from OV-chip project https://ovchip.cs.ru.nl/OV-chip_2.0 by Radboud University Nijmegen
-     */
-    
-    
-    /**
-     * @author Vasilios Mavroudis and Petr Svenda
      */
     public static class BigNat {
         // Threshold bit length of mult operand to invoke RSA trick
@@ -2595,9 +2579,6 @@ public class jcmathlib {
     }
     
     
-    /**
-     * @author Petr Svenda
-     */
     public static class ResourceManager {
         public ObjectAllocator memAlloc;
     
@@ -2773,8 +2754,6 @@ public class jcmathlib {
      * specification of allocator type (RAM/EEPROM) for particular array. Allows for
      * quick personalization and optimization of memory use when compiling for cards
      * with more/less available memory.
-     *
-    * @author Petr Svenda
      */
     public static class ObjectAllocator {
         short allocatedInRAM = 0;
