@@ -5,6 +5,7 @@ import cz.muni.fi.crocs.rcard.client.Util;
 import jcfrost.Consts;
 import cz.muni.fi.crocs.rcard.client.CardType;
 import jcfrost.JCFROST;
+import jcfrost.jcmathlib;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
@@ -22,7 +23,7 @@ public class AppletTest extends BaseTest {
     int CARD = 1;
 
     public AppletTest() throws Exception {
-        setCardType(CardType.JCARDSIMLOCAL);
+        setCardType(JCFROST.CARD_TYPE == jcmathlib.OperationSupport.SIMULATOR ? CardType.JCARDSIMLOCAL : CardType.PHYSICAL);
         setSimulateStateful(true);
         connect().transmit(new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_INITIALIZE, 0, 0));
     }

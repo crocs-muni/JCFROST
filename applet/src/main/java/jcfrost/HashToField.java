@@ -6,7 +6,7 @@ import javacard.security.MessageDigest;
 import jcfrost.jcmathlib.*;
 
 public class HashToField {
-    private BigNat largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.ecc.rm);
+    private BigNat largeScalar = new BigNat((short) 48, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.rm);
     private MessageDigest hasher = MessageDigest.getInstance(MessageDigest.ALG_SHA_256, false);
     private byte[] hashBuffer = JCSystem.makeTransientByteArray((short) (3 * 32 + 1), JCSystem.CLEAR_ON_RESET);
 
@@ -69,10 +69,8 @@ public class HashToField {
         hasher.doFinal(hashBuffer, (short) (3 * BLOCK), (short) 1, hashBuffer, (short) (2 * BLOCK));
 
         // take the first 48 B and compute mod r
-        Util.arrayCopyNonAtomic(hashBuffer, BLOCK, largeScalar.as_byte_array(), (short) 0, BLOCK);
-        Util.arrayCopyNonAtomic(hashBuffer, (short) (2 * BLOCK), largeScalar.as_byte_array(), BLOCK, (short) (L - BLOCK));
+        largeScalar.fromByteArray(hashBuffer, BLOCK, L);
         largeScalar.mod(JCFROST.curve.rBN);
-        Util.arrayCopyNonAtomic(largeScalar.as_byte_array(), (short) 16, outputScalar.as_byte_array(), (short) 0, (short) 32);
-        outputScalar.set_size((short) 32);
+        outputScalar.copy(largeScalar);
     }
 }

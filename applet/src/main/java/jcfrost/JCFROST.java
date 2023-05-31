@@ -4,13 +4,14 @@ import javacard.framework.*;
 import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
-public class JCFROST extends Applet implements MultiSelectable {
+public class JCFROST extends Applet {
+    public final static short CARD_TYPE = OperationSupport.SIMULATOR;
     public final static boolean DEBUG = true;
     public final static short POINT_SIZE = 65;
     public final static byte[] DEBUG_RANDOMNESS = new byte[64];
     public static short DEBUG_RANDOMNESS_OFFSET = 0;
 
-    public static ECConfig ecc;
+    public static ResourceManager rm;
     public static ECCurve curve;
     public static HashToField hasher;
 
@@ -27,7 +28,7 @@ public class JCFROST extends Applet implements MultiSelectable {
     }
 
     public JCFROST(byte[] buffer, short offset, byte length) {
-        OperationSupport.getInstance().setCard(OperationSupport.SIMULATOR);
+        OperationSupport.getInstance().setCard(CARD_TYPE);
         if(!OperationSupport.getInstance().DEFERRED_INITIALIZATION) {
             initialize();
         }
@@ -96,24 +97,24 @@ public class JCFROST extends Applet implements MultiSelectable {
         }
     }
 
-    public boolean select(boolean b) {
+    public boolean select() {
         if(initialized) {
             curve.updateAfterReset();
-            ecc.refreshAfterReset();
         }
         return true;
     }
 
-    public void deselect(boolean b) {}
+    public void deselect() {}
 
     private void initialize() {
         if (initialized)
             ISOException.throwIt(Consts.E_ALREADY_INITIALIZED);
 
-        ecc = new ECConfig((short) 256);
-        curve = new ECCurve(false, SecP256k1.p, SecP256k1.a, SecP256k1.b, SecP256k1.G, SecP256k1.r);
-        secret = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, ecc.rm);
-        groupPublic = new ECPoint(curve, ecc.rm);
+        rm = new ResourceManager((short) 256);
+        curve = new ECCurve(SecP256k1.p, SecP256k1.a, SecP256k1.b, SecP256k1.G, SecP256k1.r, rm);
+        rm.fixModSqMod(curve.rBN);
+        secret = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, rm);
+        groupPublic = new ECPoint(curve);
 
         hasher = new HashToField();
         frost = new FrostSession();
@@ -129,13 +130,13 @@ public class JCFROST extends Applet implements MultiSelectable {
             ISOException.throwIt(Consts.E_TOO_MANY_PARTIES);
         }
         identifier = apduBuffer[ISO7816.OFFSET_CDATA];
-        Util.arrayCopyNonAtomic(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), secret.as_byte_array(), (short) 0, (short) 32);
+        secret.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 1), (short) 32);
         groupPublic.decode(apduBuffer, (short) (ISO7816.OFFSET_CDATA + 33), POINT_SIZE);
         if (DEBUG) {
             apduBuffer[0] = minParties;
             apduBuffer[1] = maxParties;
             apduBuffer[2] = identifier;
-            Util.arrayCopyNonAtomic(secret.as_byte_array(), (short) 0, apduBuffer, (short) 3, secret.length());
+            secret.copyToByteArray(apduBuffer, (short) 3);
             groupPublic.encode(apduBuffer, (short) (3 + secret.length()), true);
             apdu.setOutgoingAndSend((short) 0, (short) (3 + secret.length() + 33));
         } else {
