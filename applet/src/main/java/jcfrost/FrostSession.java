@@ -86,21 +86,9 @@ public class FrostSession {
     }
 
     public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
-        if(storedCommitments < JCFROST.minParties) {
-            reset();
-            ISOException.throwIt(Consts.E_NOT_ENOUGH_COMMITMENTS);
-        }
-        if(index == -1) {
-            reset();
-            ISOException.throwIt(Consts.E_IDENTIFIER_NOT_INCLUDED);
-        }
         computeBindingFactors(msg, msgOffset, msgLength);
         computeGroupCommitment();
-        if(maxParties <= 12) {
-            computeLambdaOptimized();
-        } else {
-            computeLambda();
-        }
+        computeLambda();
         computeChallenge(msg, msgOffset, msgLength);
         computeSignatureShare(output, outputOffset);
     }
