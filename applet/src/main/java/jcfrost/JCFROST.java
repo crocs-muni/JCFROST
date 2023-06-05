@@ -5,9 +5,9 @@ import javacard.security.*;
 import jcfrost.jcmathlib.*;
 
 public class JCFROST extends Applet {
-    public final static short CARD_TYPE = OperationSupport.SIMULATOR;
-    public final static boolean DEBUG = true;
-    public final static short POINT_SIZE = 65;
+    public final static short CARD_TYPE = OperationSupport.JCOP3_P60;
+    public final static boolean DEBUG = false;
+    public final static short POINT_SIZE = 33;
     public final static byte[] DEBUG_RANDOMNESS = new byte[64];
     public static short DEBUG_RANDOMNESS_OFFSET = 0;
 
