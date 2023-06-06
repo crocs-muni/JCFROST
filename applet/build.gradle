@@ -108,7 +108,7 @@ final def JC310b43 = libsSdk + '/jc310b43_kit'
 //
 // JC310b43 supports building also for lower versions (cap.targetsdk).
 // If another SDK is selected, please comment the cap.targetsdk setting.
-final def JC_SELECTED = JC310b43
+final def JC_SELECTED = JC303
 
 javacard {
 
@@ -127,13 +127,11 @@ javacard {
             version '0.1'
             aid '6a:63:66:72:6f:73:74'
             output 'jcfrost.cap'
-            ints true
 
             // JC310b43 supports compilation targeting for lower API versions.
             // Here you can specify path to the SDK you want to use.
             // Only JC304 and higher are supported for targeting.
             // If JC310b43 is not used, targetsdk cannot be set.
-            targetsdk JC304
 
             // Override java bytecode version if needed.
             // javaversion '1.7'

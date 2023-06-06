@@ -86,21 +86,9 @@ public class FrostSession {
     }
 
     public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
-        if(storedCommitments < JCFROST.minParties) {
-            reset();
-            ISOException.throwIt(Consts.E_NOT_ENOUGH_COMMITMENTS);
-        }
-        if(index == -1) {
-            reset();
-            ISOException.throwIt(Consts.E_IDENTIFIER_NOT_INCLUDED);
-        }
         computeBindingFactors(msg, msgOffset, msgLength);
         computeGroupCommitment();
-        if(maxParties <= 12) {
-            computeLambdaOptimized();
-        } else {
-            computeLambda();
-        }
+        computeLambda();
         computeChallenge(msg, msgOffset, msgLength);
         computeSignatureShare(output, outputOffset);
     }
@@ -158,16 +146,16 @@ public class FrostSession {
         if(maxParties > 12) {
             ISOException.throwIt(Consts.E_TOO_MANY_PARTIES);
         }
-        int numeratorAcc;
-        int denominatorAcc;
+        short numeratorAcc;
+        short denominatorAcc;
         short j;
         if(index != (short) 0) {
             numeratorAcc = commitments[0].identifier;
-            denominatorAcc = commitments[0].identifier - commitments[index].identifier;
+            denominatorAcc = (short) (commitments[0].identifier - commitments[index].identifier);
             j = 1;
         } else {
             numeratorAcc = commitments[1].identifier;
-            denominatorAcc = commitments[1].identifier - commitments[index].identifier;
+            denominatorAcc = (short) (commitments[1].identifier - commitments[index].identifier);
             j = 2;
         }
 
@@ -176,18 +164,18 @@ public class FrostSession {
                 continue;
             }
             numeratorAcc *= commitments[j].identifier;
-            denominatorAcc *= commitments[j].identifier - commitments[index].identifier;
+            denominatorAcc *= (short) (commitments[j].identifier - commitments[index].identifier);
         }
-        numerator.setSize((short) 4);
+        numerator.setSize((short) 2);
         numerator.setValue(numeratorAcc);
         if(denominatorAcc < 0) {
             denominatorAcc *= -1;
-            tmp.setSize((short) 4);
+            tmp.setSize((short) 2);
             tmp.setValue(denominatorAcc);
             denominator.copy(JCFROST.curve.rBN);
             denominator.subtract(tmp);
         } else {
-            denominator.setSize((short) 4);
+            denominator.setSize((short) 2);
             denominator.setValue(denominatorAcc);
         }
 

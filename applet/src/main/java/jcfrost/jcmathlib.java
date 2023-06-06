@@ -615,17 +615,6 @@ public class jcmathlib {
         }
 
         /**
-         * Set this BigNat to a given value. Previous size is kept.
-         */
-        public void setValue(int newValue) {
-            zero();
-            value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
-            value[(short) (value.length - 2)] = (byte) ((newValue >> 8) & DIGIT_MASK);
-            value[(short) (value.length - 3)] = (byte) ((newValue >> 8) & DIGIT_MASK);
-            value[(short) (value.length - 4)] = (byte) ((newValue >> 8) & DIGIT_MASK);
-        }
-
-        /**
          * Copies a BigNat into this without changing size. May throw an exception if this is too small.
          */
         public void copy(BigNatInternal other) {
