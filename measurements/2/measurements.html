@@ -1,0 +1,661 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Measurements - jcfrost.FrostSession#sign(byte[],short,short,byte[],short)</title>
+        <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Open+Sans">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.3/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.3/highlight.min.js"></script>
+    <script>hljs.highlightAll()</script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.16.1/plotly.min.js"></script>
+    <style>
+
+
+.contents {
+    display: flex;
+    justify-content: space-between;
+}
+
+.modebar-container {
+    z-index: 2;
+}
+
+.main-svg {
+    z-index: 1;
+}
+
+.trap {
+    position: relative;
+}
+
+.trap:hover {
+    cursor: pointer;
+    font-style: italic;
+}
+
+.trap_select {
+    background-color: rgba(0, 255, 255, 25%);
+    font-style: italic;
+}
+
+.trap_err {
+    background-color: rgba(255, 0, 0, 25%);
+}
+
+.trap_warn {
+    background-color: rgba(255, 255, 0, 50%);
+}
+
+.trapSwitch {
+    bottom: 0;
+    position: absolute;
+    right: 0;
+}
+
+.notes  {
+    align-items: center;
+    background-color: rgba(248, 248, 248, 0.97);
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em;
+}
+
+.note {
+    align-items: center;
+    display: flex;
+    justify-content: left;
+}
+
+.square {
+    display: inline-block;
+    height: 20px;
+    margin-right: 10px;
+    width: 20px;
+}
+
+.graph {
+    align-content: center;
+    width: 49%;
+}
+
+.graph-sticky {
+    top: 0;
+    position: -webkit-sticky;
+    position: sticky;
+}
+
+.code {
+    float: left;
+    width: 50%;
+}
+
+pre {
+    /* override the default pre margin in Firefox and Chrome */
+    margin-bottom: 0;
+}
+
+#codeWithTraps, #codeWithoutTraps {
+    flex: 1;
+    margin-left: -100px;
+    overflow-x: auto;
+}
+
+#codeWithTraps, #graphHelp {
+    display: none;
+}
+
+.codeHeader {
+    position: relative;
+    margin-bottom: 20px;
+    word-wrap: anywhere;
+}
+
+.codeContainer {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.codeWrapper {
+    display: inline-block;
+    min-width: 100%;
+}
+
+.center {
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <h1>jcfrost.FrostSession#sign(byte[],short,short,byte[],short)</h1>
+    <h3 id="graphName" class="center"></h3>
+    <div class="contents">
+        <div class="code">
+            <div class="codeHeader">
+                <div>
+                    <b>Mode:</b> time<br>
+                    <b>Card ATR:</b>                         <a href="https://smartcard-atr.apdu.fr/parse?ATR=3B9495810146545601C4" target="_blank">3B9495810146545601C4</a>
+<br>
+                        <b>Number of rounds:</b> 100<br>
+                    <b>APDU header:</b> 00040400<br>
+                        <b>Input regex:</b>
+66726f7374<br>
+                        <b>Input division:</b> none<br>
+                    <b>Elapsed time:</b> 0 days 00:15:37.700<br>
+                    <b>Source measurements:</b> <a href="measurements.csv" target="_blank">measurements.csv</a>
+                </div>
+                <div class="trapSwitch">
+                    <input type="checkbox" id="trapSwitch" autocomplete="off"/>
+                    <label for="trapSwitch">Show explicit traps</label>
+                </div>
+            </div>
+            <div class="codeContainer">
+<div id="heatmap"></div>                <div id="codeWithTraps">
+                    <div class="codeWrapper">
+                        <pre><code class="language-java">public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1);</span>
+</div>    computeBindingFactors(msg, msgOffset, msgLength);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2);</span>
+</div>    computeGroupCommitment();
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3);</span>
+</div>    computeLambdaOptimized();
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4);</span>
+</div>    computeChallenge(msg, msgOffset, msgLength);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5);</span>
+</div>    computeSignatureShare(output, outputOffset);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6);</span>
+</div>}
+</code></pre>
+                    </div>
+                </div>
+                <div id="codeWithoutTraps">
+                    <div class="codeWrapper">
+                                                                        <pre><code class="language-java"><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1 trap"><span class="trap_contents">public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2 trap">    <span class="trap_contents">computeBindingFactors(msg, msgOffset, msgLength);</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3 trap">    <span class="trap_contents">computeGroupCommitment();</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4 trap">    <span class="trap_contents">computeLambdaOptimized();</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5 trap">    <span class="trap_contents">computeChallenge(msg, msgOffset, msgLength);</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6 trap">    <span class="trap_contents">computeSignatureShare(output, outputOffset);</span>
+</div>}
+</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="center">Colour explanation</h3>
+                <div class="notes">
+                    <div class="note">
+                        <div class="square trap_select"></div>
+                        Currently selected trap
+                    </div>
+                    <div class="note">
+                        <div class="square trap_warn"></div>
+                        Trap was never reached
+                    </div>
+                    <div class="note">
+                        <div class="square trap_err"></div>
+                        Trap was reached only sometimes
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="graph">
+            <div class="graph-sticky">
+                <div id="graphHelp" class="center">
+                    <p>Click on a graph item to get a list of corresponding inputs.</p>
+                </div>
+                <div id="plotly"></div>
+            </div>
+        </div>
+    </div>
+    <script type="application/javascript">
+
+
+const heatmapX = [
+    'Avg μs',
+];
+const heatmapData  = {
+    colorscale: 'RdBu'
+};
+
+
+/*
+ * MACROS
+ */
+
+
+/*
+ * CONSTANTS
+ */
+
+const trapPrefix = 'TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_';
+
+const inputs = ['66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374'];
+const measurements = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [9663, 9539, 9860, 9753, 9736, 10409, 10191, 10490, 10385, 10318, 10440, 10632, 10541, 9761, 9627, 10055, 10660, 10217, 10510, 10155, 9618, 10348, 9781, 10519, 10435, 10506, 10522, 10482, 10423, 9472, 10282, 10425, 10261, 9408, 9639, 10340, 10358, 10219, 10348, 10141, 9407, 10301, 9531, 10324, 10236, 10236, 10414, 10410, 10348, 10168, 9681, 9978, 10238, 9706, 10147, 9649, 10224, 10194, 10080, 9571, 10197, 10380, 10064, 9424, 9987, 10171, 9474, 9865, 10223, 10116, 9491, 10274, 10196, 10329, 9839, 9741, 10217, 10124, 10214, 10102, 10277, 10144, 10281, 10260, 10187, 9952, 10147, 9763, 10258, 10139, 10427, 9907, 10295, 10188, 10198, 9568, 10035, 10230, 10105, 10106],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [720411, 738291, 738045, 745638, 741750, 737377, 721410, 739025, 735447, 736786, 723639, 742550, 733796, 736805, 739675, 723850, 718371, 718284, 744324, 740844, 737270, 740205, 739018, 722044, 736358, 739333, 738878, 740687, 742146, 723459, 746295, 740057, 737331, 740697, 740069, 737616, 736854, 735429, 717524, 742925, 740534, 742045, 739002, 734522, 741639, 714205, 736214, 736933, 736001, 738985, 738620, 741480, 741172, 737014, 742599, 738115, 725065, 737943, 737470, 737978, 737710, 744248, 742842, 740769, 743000, 744195, 739572, 739570, 737562, 739956, 736821, 724816, 738477, 738689, 719721, 743459, 738040, 738742, 736029, 740352, 736474, 737249, 737572, 738442, 735742, 740304, 740300, 747811, 740080, 741274, 738322, 735800, 719610, 736465, 740847, 735442, 738822, 735587, 738297, 744731],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [612192, 604125, 604995, 603755, 604189, 604164, 603332, 604408, 603942, 603972, 604215, 604263, 604080, 604378, 604803, 604186, 604081, 604945, 604446, 604237, 605176, 604452, 605230, 604633, 604163, 604295, 604345, 604242, 604006, 604855, 604547, 603974, 604696, 604854, 604304, 604178, 604222, 604192, 604754, 604062, 605050, 604875, 603508, 604775, 604330, 604282, 604819, 604346, 604715, 603195, 603540, 603136, 605088, 604890, 604991, 605146, 605047, 603377, 604282, 604348, 604297, 603977, 605197, 604614, 604754, 604989, 604746, 605064, 603785, 604449, 604984, 604991, 604390, 605384, 604717, 605127, 605346, 605294, 605296, 604862, 605457, 604084, 604821, 604989, 605011, 605072, 604447, 604107, 604537, 604824, 604500, 604831, 604146, 604816, 605371, 604433, 605024, 604070, 604197, 605121],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [279700, 222398, 220957, 221405, 223378, 222834, 222078, 221928, 222290, 222039, 221914, 221877, 222404, 222273, 221986, 222878, 222428, 221335, 222378, 222324, 221615, 221929, 222266, 221750, 223302, 222686, 222464, 222786, 222012, 222509, 223080, 222982, 222368, 222707, 222146, 222977, 223578, 222430, 221197, 223011, 222056, 222373, 223893, 222049, 221938, 223860, 222161, 223667, 221829, 224513, 223399, 223437, 221949, 222579, 222137, 221402, 221511, 223073, 222648, 222472, 222984, 221870, 221531, 223133, 221902, 222694, 222193, 222508, 223351, 222905, 223063, 222060, 222539, 221454, 222142, 222579, 222166, 222682, 222820, 221911, 220880, 223402, 221965, 221751, 221261, 222471, 222679, 223225, 221834, 222492, 222688, 222776, 222300, 221622, 221571, 223078, 221878, 221462, 223385, 222372],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [288683, 350913, 350544, 354150, 349472, 353174, 352617, 348667, 352286, 353366, 351856, 350124, 350270, 352752, 349154, 355677, 346570, 356388, 350931, 354216, 353259, 354496, 346961, 351906, 352592, 337006, 351972, 351638, 351386, 350130, 348839, 350644, 350050, 355536, 355177, 352915, 351121, 349429, 350785, 332174, 355352, 352770, 350752, 353262, 352580, 353047, 354380, 353006, 354223, 350936, 353160, 350942, 350559, 348813, 352635, 352374, 355376, 352933, 336149, 355745, 353840, 354443, 351048, 350643, 353242, 353585, 352564, 352003, 351170, 350183, 348392, 350472, 351529, 349191, 351349, 351326, 350629, 345808, 350831, 350769, 356704, 351478, 352099, 332505, 357776, 333912, 354208, 351126, 356191, 351653, 353999, 356296, 352846, 349831, 353807, 353294, 349704, 353199, 352507, 349722],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [538560, 587406, 570339, 506122, 522741, 538630, 539211, 553820, 553059, 570768, 555523, 554510, 522794, 473919, 586984, 570646, 523702, 584430, 523397, 587223, 554128, 617788, 569908, 538309, 554578, 537201, 603507, 634608, 570581, 572154, 603826, 538364, 586911, 523879, 587389, 507039, 555429, 540143, 586502, 536752, 521678, 571372, 555735, 586934, 537281, 569462, 587191, 586497, 555397, 506338, 507605, 556725, 587256, 587905, 540135, 538081, 537849, 586789, 570726, 568911, 569794, 506354, 603668, 473249, 571828, 586683, 553694, 552598, 521713, 553526, 538682, 556112, 523477, 539465, 571529, 539314, 587887, 571531, 553256, 572001, 555770, 571101, 572003, 571389, 553106, 506304, 588394, 572548, 504920, 507256, 554402, 618946, 571867, 507751, 523566, 555019, 539520, 570400, 586559, 587342]
+};
+
+const heatmapValues = {
+    x: heatmapX,
+    y: [...Array(13 + 1).keys()].splice(1).reverse(),
+    z: [[null], [556071.71], [null], [351171.83], [null], [222398.22], [null], [604520.78], [null], [736945.3], [null], [10102.07], [null]]
+};
+
+const heatmapValuesFiltered = {
+    x: heatmapValues.x,
+    y: undefined,
+    z: heatmapValues.z.filter((e, i, z) => i === 0 || z[i][0] !== null || z[i - 1][0] === null)
+};
+heatmapValuesFiltered.y = heatmapValues.y.slice(13 - heatmapValuesFiltered.z.length, 13);
+
+const histogramCommon = {
+    bingroup: '1',
+    type: 'histogram',
+    xaxis: 'x2',
+    yaxis: 'y1',
+    showlegend: true,
+    hovertemplate: 'Trace: %{meta[0]}<br>Bin: %{x}<br>Count: %{y}<extra></extra>'
+};
+
+const configCommon = {
+    displaylogo: false,
+    responsive: true,
+    toImageButtonOptions: {
+        format: 'svg',
+        scale: 2
+    }
+};
+
+/*
+ * FUNCTIONS
+ */
+
+// this is not very nice but Google didn't help much, nor I'm a JS developer ¯\_(ツ)_/¯
+let heatmapHeight;
+window.addEventListener('load', _ => {
+    heatmapHeight = document.querySelector('#codeWithoutTraps code').clientHeight + 6;
+    const maxLineStringSize = 2 * heatmapValues.y[0].toString().length;
+
+    // Heatmap
+    Plotly.newPlot('heatmap', [{
+        ...heatmapValuesFiltered,
+        hovertemplate: 'Line: %{y}<br>%{z} μs<extra></extra>',
+        showlegend: false,
+        showscale: false,
+        type: 'heatmap',
+        xgap: 4,
+        ...heatmapData
+    }], {
+        paper_bgcolor: 'rgba(0, 0, 0, 0)',
+        margin: {
+            l: 18 + maxLineStringSize,
+            r: 110,
+            b: 0,
+            t: 18,
+            pad: 4
+        },
+        height: heatmapHeight,
+        width: 112 + 45 * heatmapValues.x.length + maxLineStringSize,
+        xaxis: {
+            side: 'top',
+            fixedrange: true,
+            ticks: '',
+            showgrid: false,
+            zeroline: false
+        },
+        yaxis: {
+            fixedrange: true,
+            ticks: '',
+            title: '',
+            type: 'category',
+            showgrid: false,
+            zeroline: false
+        }
+    }, {
+        displayModeBar: false
+    });
+
+    // Heatmap click event handler
+    const heatmapDiv = document.getElementById('heatmap');
+    heatmapDiv.on('plotly_click', function (data) {
+        const graph = data.points[0];
+        // check for a valid value
+        if (graph.z === null)
+            return;
+
+        // compute the correct trap index
+        const z = graph.data.z;
+
+        let trapIdx = 0;
+        for (let i = z.length - 1; i >= z.length - graph.y; i--) {
+            if (z[i][0] !== null)
+                trapIdx++;
+        }
+
+        // select the given trap
+        const trapDiv = document.querySelector('.' + trapPrefix + trapIdx);
+        const event = new MouseEvent('click');
+        trapDiv.dispatchEvent(event);
+    });
+});
+
+/**
+ * Shows or hides explicit performance traps.
+ *
+ * @param {Event} event change event
+ */
+function toggleTraps(event) {
+    const divWith = document.getElementById('codeWithTraps');
+    const divWithout = document.getElementById('codeWithoutTraps');
+
+    if (event.currentTarget.checked) {
+        divWith.style.display = 'initial';
+        divWithout.style.display = 'none';
+
+        const codeWith = divWith.querySelector('code');
+        Plotly.update('heatmap', {
+            x: [heatmapValues.x],
+            y: [heatmapValues.y],
+            z: [heatmapValues.z]
+        }, {
+            'yaxis.type': 'category',
+            height: codeWith.clientHeight + 6
+        });
+        return;
+    }
+
+    divWith.style.display = 'none';
+    divWithout.style.display = 'initial';
+
+    Plotly.update('heatmap', {
+        x: [heatmapValuesFiltered.x],
+        y: [heatmapValuesFiltered.y],
+        z: [heatmapValuesFiltered.z]
+    }, {
+        'yaxis.type': 'category',
+        height: heatmapHeight
+    });
+}
+
+/**
+ * Highlights and selects the given trap.
+ *
+ * @param {String} trapName
+ */
+function selectTraps(trapName) {
+    // update highlight of the selected trap
+    document.querySelectorAll('.trap .trap_select').forEach(t => t.classList.remove('trap_select'));
+    document.querySelectorAll('.' + trapName + ' .trap_contents').forEach(t => t.classList.add('trap_select'));
+}
+
+/*
+ * CONSTANTS
+ */
+
+const filteredMeasurements = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [9663, 9539, 9860, 9753, 9736, 10409, 10191, 10490, 10385, 10318, 10440, 10632, 10541, 9761, 9627, 10055, 10660, 10217, 10510, 10155, 9618, 10348, 9781, 10519, 10435, 10506, 10522, 10482, 10423, 9472, 10282, 10425, 10261, 9408, 9639, 10340, 10358, 10219, 10348, 10141, 9407, 10301, 9531, 10324, 10236, 10236, 10414, 10410, 10348, 10168, 9681, 9978, 10238, 9706, 10147, 9649, 10224, 10194, 10080, 9571, 10197, 10380, 10064, 9424, 9987, 10171, 9474, 9865, 10223, 10116, 9491, 10274, 10196, 10329, 9839, 9741, 10217, 10124, 10214, 10102, 10277, 10144, 10281, 10260, 10187, 9952, 10147, 9763, 10258, 10139, 10427, 9907, 10295, 10188, 10198, 9568, 10035, 10230, 10105, 10106],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [720411, 738291, 738045, 745638, 741750, 737377, 721410, 739025, 735447, 736786, 723639, 742550, 733796, 736805, 739675, 723850, 718371, 718284, 744324, 740844, 737270, 740205, 739018, 722044, 736358, 739333, 738878, 740687, 742146, 723459, 746295, 740057, 737331, 740697, 740069, 737616, 736854, 735429, 717524, 742925, 740534, 742045, 739002, 734522, 741639, null, 736214, 736933, 736001, 738985, 738620, 741480, 741172, 737014, 742599, 738115, 725065, 737943, 737470, 737978, 737710, 744248, 742842, 740769, 743000, 744195, 739572, 739570, 737562, 739956, 736821, 724816, 738477, 738689, 719721, 743459, 738040, 738742, 736029, 740352, 736474, 737249, 737572, 738442, 735742, 740304, 740300, 747811, 740080, 741274, 738322, 735800, 719610, 736465, 740847, 735442, 738822, 735587, 738297, 744731],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [null, 604125, 604995, 603755, 604189, 604164, 603332, 604408, 603942, 603972, 604215, 604263, 604080, 604378, 604803, 604186, 604081, 604945, 604446, 604237, 605176, 604452, 605230, 604633, 604163, 604295, 604345, 604242, 604006, 604855, 604547, 603974, 604696, 604854, 604304, 604178, 604222, 604192, 604754, 604062, 605050, 604875, 603508, 604775, 604330, 604282, 604819, 604346, 604715, 603195, 603540, 603136, 605088, 604890, 604991, 605146, 605047, 603377, 604282, 604348, 604297, 603977, 605197, 604614, 604754, 604989, 604746, 605064, 603785, 604449, 604984, 604991, 604390, 605384, 604717, 605127, 605346, 605294, 605296, 604862, 605457, 604084, 604821, 604989, 605011, 605072, 604447, 604107, 604537, 604824, 604500, 604831, 604146, 604816, 605371, 604433, 605024, 604070, 604197, 605121],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [null, 222398, 220957, 221405, 223378, 222834, 222078, 221928, 222290, 222039, 221914, 221877, 222404, 222273, 221986, 222878, 222428, 221335, 222378, 222324, 221615, 221929, 222266, 221750, 223302, 222686, 222464, 222786, 222012, 222509, 223080, 222982, 222368, 222707, 222146, 222977, 223578, 222430, 221197, 223011, 222056, 222373, 223893, 222049, 221938, 223860, 222161, 223667, 221829, 224513, 223399, 223437, 221949, 222579, 222137, 221402, 221511, 223073, 222648, 222472, 222984, 221870, 221531, 223133, 221902, 222694, 222193, 222508, 223351, 222905, 223063, 222060, 222539, 221454, 222142, 222579, 222166, 222682, 222820, 221911, 220880, 223402, 221965, 221751, 221261, 222471, 222679, 223225, 221834, 222492, 222688, 222776, 222300, 221622, 221571, 223078, 221878, 221462, 223385, 222372],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [null, 350913, 350544, 354150, 349472, 353174, 352617, 348667, 352286, 353366, 351856, 350124, 350270, 352752, 349154, 355677, 346570, 356388, 350931, 354216, 353259, 354496, 346961, 351906, 352592, 337006, 351972, 351638, 351386, 350130, 348839, 350644, 350050, 355536, 355177, 352915, 351121, 349429, 350785, 332174, 355352, 352770, 350752, 353262, 352580, 353047, 354380, 353006, 354223, 350936, 353160, 350942, 350559, 348813, 352635, 352374, 355376, 352933, 336149, 355745, 353840, 354443, 351048, 350643, 353242, 353585, 352564, 352003, 351170, 350183, 348392, 350472, 351529, 349191, 351349, 351326, 350629, 345808, 350831, 350769, 356704, 351478, 352099, 332505, 357776, 333912, 354208, 351126, 356191, 351653, 353999, 356296, 352846, 349831, 353807, 353294, 349704, 353199, 352507, 349722],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [538560, 587406, 570339, 506122, 522741, 538630, 539211, 553820, 553059, 570768, 555523, 554510, 522794, 473919, 586984, 570646, 523702, 584430, 523397, 587223, 554128, 617788, 569908, 538309, 554578, 537201, 603507, 634608, 570581, 572154, 603826, 538364, 586911, 523879, 587389, 507039, 555429, 540143, 586502, 536752, 521678, 571372, 555735, 586934, 537281, 569462, 587191, 586497, 555397, 506338, 507605, 556725, 587256, 587905, 540135, 538081, 537849, 586789, 570726, 568911, 569794, 506354, 603668, 473249, 571828, 586683, 553694, 552598, 521713, 553526, 538682, 556112, 523477, 539465, 571529, 539314, 587887, 571531, 553256, 572001, 555770, 571101, 572003, 571389, 553106, 506304, 588394, 572548, 504920, 507256, 554402, 618946, 571867, 507751, 523566, 555019, 539520, 570400, 586559, 587342]
+};
+
+const movingAverages = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [9663.0, 9601.0, 9687.333333333334, 9703.75, 9710.2, 9826.666666666666, 9878.714285714286, 9955.125, 10002.888888888889, 10034.4, 10112.1, 10221.4, 10289.5, 10290.3, 10279.4, 10244.0, 10290.9, 10263.6, 10276.1, 10259.8, 10177.6, 10149.2, 10073.2, 10149.0, 10229.8, 10274.9, 10261.1, 10287.6, 10278.9, 10210.6, 10277.0, 10284.7, 10332.7, 10221.6, 10142.0, 10125.4, 10109.0, 10082.7, 10075.2, 10142.1, 10054.6, 10042.2, 9969.2, 10060.8, 10120.5, 10110.1, 10115.7, 10134.8, 10134.8, 10137.5, 10164.9, 10132.6, 10203.3, 10141.5, 10132.6, 10073.9, 10054.9, 10033.3, 10006.5, 9946.8, 9998.4, 10038.6, 10021.2, 9993.0, 9977.0, 10029.2, 9954.2, 9921.3, 9935.6, 9990.1, 9919.5, 9908.9, 9922.1, 10012.6, 9997.8, 9954.8, 10029.1, 10055.0, 10054.1, 10052.7, 10131.3, 10118.3, 10126.8, 10119.9, 10154.7, 10175.8, 10168.8, 10132.7, 10137.1, 10140.8, 10155.8, 10132.1, 10133.5, 10126.3, 10127.4, 10089.0, 10077.8, 10124.5, 10109.2, 10105.9],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [720411.0, 729351.0, 732249.0, 735596.25, 736827.0, 736918.6666666666, 734703.1428571428, 735243.375, 735266.0, 735418.0, 735740.8, 736166.7, 735741.8, 734858.5, 734651.0, 733298.3, 732994.4, 730920.3, 731808.0, 732213.8, 733576.9, 733342.4, 733864.6, 732388.5, 732056.8, 733605.1, 735655.8, 737896.1, 737678.3, 735939.8, 736842.3, 736827.5, 736658.8, 738524.1, 738895.2, 738723.5, 738521.1, 737995.3, 735533.1, 737479.7, 736903.6, 737102.4, 737269.5, 736652.0, 736809.0, 734467.9, 734403.9, 734554.3, 736402.0, 736008.0, 735816.6, 735760.1, 735977.1, 736226.3, 736322.3, 738713.3, 737598.4, 737699.4, 737846.3, 737745.6, 737654.6, 737931.4, 738098.4, 738473.9, 738514.0, 739122.0, 740572.7, 740735.4, 740744.6, 740942.4, 740853.5, 738910.3, 738473.8, 738265.8, 735937.9, 735864.3, 735711.1, 735628.3, 735475.0, 735514.6, 735479.9, 736723.2, 736632.7, 736608.0, 738210.1, 737894.6, 738120.6, 739027.5, 739432.6, 739524.8, 739709.6, 739564.7, 737768.5, 737570.8, 738081.3, 737595.1, 737447.3, 736224.9, 736046.6, 736392.3],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [612192.0, 608158.5, 607104.0, 606266.75, 605851.2, 605570.0, 605250.2857142857, 605145.0, 605011.3333333334, 604907.4, 604109.7, 604123.5, 604032.0, 604094.3, 604155.7, 604157.9, 604232.8, 604286.5, 604336.9, 604363.4, 604459.5, 604478.4, 604593.4, 604618.9, 604554.9, 604565.8, 604592.2, 604521.9, 604477.9, 604539.7, 604476.8, 604429.0, 604375.6, 604397.7, 604411.8, 604400.1, 604387.8, 604382.8, 604457.6, 604378.3, 604428.6, 604518.7, 604399.9, 604392.0, 604394.6, 604405.0, 604464.7, 604480.1, 604476.2, 604389.5, 604238.5, 604064.6, 604222.6, 604234.1, 604300.2, 604386.6, 604409.4, 604312.5, 604269.2, 604384.5, 604460.2, 604544.3, 604555.2, 604527.6, 604503.9, 604488.2, 604458.1, 604626.8, 604577.1, 604587.2, 604655.9, 604757.3, 604676.6, 604753.6, 604749.9, 604763.7, 604823.7, 604846.7, 604997.8, 605039.1, 605086.4, 604995.7, 605038.8, 604999.3, 605028.7, 605023.2, 604933.3, 604814.6, 604738.7, 604734.9, 604639.2, 604713.9, 604646.4, 604629.1, 604665.1, 604601.2, 604658.9, 604655.2, 604621.2, 604650.9],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [279700.0, 251049.0, 241018.33333333334, 236115.0, 233567.6, 231778.66666666666, 230392.85714285713, 229334.75, 228552.0, 227900.7, 222122.1, 222070.0, 222214.7, 222301.5, 222162.3, 222166.7, 222201.7, 222142.4, 222151.2, 222179.7, 222149.8, 222155.0, 222141.2, 222088.9, 222220.5, 222201.3, 222204.9, 222350.0, 222313.4, 222331.9, 222478.4, 222583.7, 222593.9, 222689.6, 222574.0, 222603.1, 222714.5, 222678.9, 222597.4, 222647.6, 222545.2, 222484.3, 222636.8, 222571.0, 222550.2, 222638.5, 222496.8, 222620.5, 222683.7, 222833.9, 222968.2, 223074.6, 222880.2, 222933.2, 222953.1, 222707.3, 222642.3, 222582.9, 222664.8, 222460.7, 222419.2, 222262.5, 222220.7, 222276.1, 222252.6, 222381.8, 222450.0, 222393.5, 222463.8, 222507.1, 222515.0, 222534.0, 222634.8, 222466.9, 222490.9, 222479.4, 222476.7, 222494.1, 222441.0, 222341.6, 222123.3, 222257.5, 222200.1, 222229.8, 222141.7, 222130.9, 222182.2, 222236.5, 222137.9, 222196.0, 222376.8, 222314.2, 222347.7, 222334.8, 222365.8, 222426.5, 222346.4, 222170.1, 222325.2, 222313.2],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [288683.0, 319798.0, 330046.6666666667, 336072.5, 338752.4, 341156.0, 342793.28571428574, 343527.5, 344500.6666666667, 345387.2, 351704.5, 351625.6, 351598.2, 351458.4, 351426.6, 351676.9, 351072.2, 351844.3, 351708.8, 351793.8, 351934.1, 352371.3, 352040.4, 351955.8, 352299.6, 350432.5, 350972.7, 350497.7, 350543.2, 350134.6, 349692.6, 349307.4, 349616.3, 349979.3, 350237.8, 351828.7, 351743.6, 351522.7, 351462.6, 349667.0, 350318.3, 350530.9, 350601.1, 350373.7, 350114.0, 350127.2, 350453.1, 350810.8, 351154.6, 353030.8, 352811.6, 352628.8, 352609.5, 352164.6, 352170.1, 352102.8, 352202.4, 352195.1, 350387.7, 350868.6, 350936.6, 351286.7, 351335.6, 351518.6, 351579.3, 351700.4, 351419.2, 351326.2, 352828.3, 352272.1, 351727.3, 351330.2, 351378.3, 351233.1, 351043.8, 350817.9, 350624.4, 350004.9, 349971.0, 350029.6, 350860.8, 350961.4, 351018.4, 349349.8, 349992.5, 348251.1, 348609.0, 349140.8, 349676.8, 349765.2, 349494.7, 349976.5, 350051.2, 351783.8, 351386.9, 353325.1, 352874.7, 353082.0, 352713.6, 352520.5],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [538560.0, 562983.0, 565435.0, 550606.75, 545033.6, 543966.3333333334, 543287.0, 544603.625, 545543.1111111111, 548065.6, 549761.9, 546472.3, 541717.8, 538497.5, 544921.8, 548123.4, 546572.5, 549633.5, 546667.3, 548312.8, 548173.3, 554501.1, 559212.5, 565651.5, 562410.9, 559066.4, 567046.9, 572064.7, 576783.1, 575276.2, 580246.0, 572303.6, 574003.9, 572560.9, 575842.0, 572825.8, 568018.0, 558571.5, 560163.6, 556623.4, 548408.6, 551709.4, 548591.8, 554897.3, 549886.5, 556128.8, 559305.0, 563940.4, 560829.9, 557788.5, 556381.2, 554916.5, 558068.6, 558165.7, 558451.1, 555313.0, 550378.8, 550408.0, 551940.9, 558198.2, 564417.1, 559380.0, 561021.2, 549555.6, 552724.9, 557585.1, 559169.6, 555750.5, 550849.2, 549310.7, 546199.5, 551175.3, 543156.2, 549777.8, 549747.9, 545011.0, 548430.3, 550323.6, 553477.9, 555325.4, 557034.2, 558533.1, 563385.7, 566578.1, 564735.8, 561434.8, 561485.5, 561587.2, 556753.6, 550279.1, 550142.3, 554926.8, 554913.2, 548549.4, 545595.4, 550466.9, 545579.5, 545364.7, 553528.6, 561537.2]
+};
+
+const scatterCommon = {
+    type: 'scatter',
+    xaxis: 'x3',
+    yaxis: 'y2',
+    name: 'elapsed time',
+    showlegend: true,
+    marker: {
+        color: 'rgb(225, 148, 22)'
+    },
+    hovertemplate: 'Trace: elapsed time<br>Round: %{x}<br>Time: %{y} μs<extra></extra>'
+};
+
+const layoutCommon = {
+    bargap: 0.2,
+    barmode: 'overlay',
+    height: 700,
+    margin: {
+        l: 60,
+        r: 40,
+        b: 40,
+        t: 40,
+        pad: 5
+    },
+    xaxis1: {
+        anchor: 'y1',
+        title: 'Unreachable'
+    },
+    xaxis2: {
+        anchor: 'y1',
+        // dtick: 1,
+        tickformat: ',d',
+        title: 'Time in μs'
+    },
+    xaxis3: {
+        anchor: 'y2',
+        domain: [0, 1],
+        tickformat: ',d',
+        title: 'Round'
+    },
+    yaxis1: {
+        anchor: 'x1',
+        domain: [0.55, 1],
+        title: 'Frequency'
+        // type: 'log',
+    },
+    yaxis2: {
+        anchor: 'x3',
+        domain: [0, 0.43],
+        title: 'Time in μs'
+    }
+};
+
+/*
+ * FUNCTIONS
+ */
+
+// set default heading
+document.getElementById('graphName').innerText = 'Select a line to view its histogram.';
+
+/**
+ * Redraw graph event handler
+ *
+ * @param {Event} evt mouse click event
+ */
+function redrawGraph(evt) {
+    // enable graph help
+    document.getElementById('graphHelp').style.display = 'initial';
+
+    // attribute with trap name is always the first
+    const trapName = evt.currentTarget.classList[0];
+
+    // update highlight of the selected trap
+    selectTraps(trapName);
+
+    // update trap title
+    document.getElementById('graphName').textContent = trapName;
+
+    const filteredVals = filteredMeasurements[trapName];
+    const movingAverage = movingAverages[trapName];
+    const vals = measurements[trapName];
+
+    const traces = [];
+
+    const hasTime = vals.some(e => e !== null);
+    if (hasTime) {
+        // Histograms
+        traces.push({
+            ...histogramCommon,
+            x: filteredVals,
+            name: 'measurements',
+            meta: ['measurements'],
+            marker: {
+                color: 'rgb(49, 130, 189)',
+                opacity: 0.75
+            }
+        });
+
+        traces.push({
+            ...histogramCommon,
+            x: vals.map((e, i) => filteredVals[i] !== null ? null : e),
+            name: 'outliers',
+            meta: ['outliers'],
+            visible: 'legendonly',
+            marker: {
+                color: 'rgb(255, 136, 0)',
+                opacity: 0.75
+            }
+        });
+
+        // Line graph
+
+        // make dots only on line endings
+        const dot_x = [], dot_y = [];
+        for (let i = 0; i < vals.length; i++) {
+            // no value
+            if (vals[i] === null)
+                continue;
+
+            // both neighbouring values are defined or only one is defined on border values
+            if (vals.length > 1 &&
+                (i === 0 || vals[i - 1] !== null) && (i === vals.length - 1 || vals[i + 1] != null))
+                continue;
+
+            dot_x.push(i + 1);
+            dot_y.push(vals[i]);
+        }
+
+        traces.push({
+            ...scatterCommon,
+            x: dot_x,
+            y: dot_y,
+            mode: 'markers',
+            showlegend: false
+        }, {
+            ...scatterCommon,
+            x: [...Array(vals.length + 1).keys()].splice(1),
+            y: vals,
+            mode: 'lines'
+        }, {
+            ...scatterCommon,
+            x: [...Array(vals.length + 1).keys()].splice(1),
+            y: movingAverage,
+            name: 'moving average',
+            marker: {
+                color: 'rgb(166, 56, 64)'
+            },
+            hovertemplate: 'Trace: moving average<br>Round: %{x}<br>Average time: %{y} μs<extra></extra>'
+        });
+    }
+
+    // bar graph visualising number of unreachable rounds
+    const hasUnreach = vals.includes(null);
+    if (hasUnreach) {
+        const y = vals.filter(e => e === null).length;
+        traces.push({
+            x: [''],
+            y: [y],
+            type: 'bar',
+            xaxis: 'x1',
+            yaxis: 'y1',
+            name: 'unreachable',
+            showlegend: false,
+            marker: {
+                color: 'rgb(255, 0, 0)',
+                opacity: 0.65
+            },
+            hovertemplate: 'Unreachable<br>Count: %{y} (%{y}/' + vals.length + ')<extra></extra>'
+        });
+    }
+
+    // WARNING: Layout and config must be passed directly!  Otherwise, sometimes the graph may fail to load.
+    Plotly.react('plotly', traces, {
+        ...layoutCommon,
+        xaxis1: {
+            ...layoutCommon.xaxis1,
+            domain: [0, hasTime ? 0.45 : 1]
+        },
+        xaxis2: {
+            ...layoutCommon.xaxis2,
+            domain: [hasUnreach ? 0.55 : 0, 1]
+        }
+    }, {...configCommon});
+
+    // set click event handler
+    const plotlyDiv = document.getElementById('plotly');
+
+    // get bin half of the bin size
+    // Unfortunately, the xbins.size key is stored only in the first histogram trace and not in the rest, so we have
+    // to obtain this value in advance.
+    const binSizeHalf = plotlyDiv._fullData[0].xbins.size / 2;
+
+    // replace the event handler
+    plotlyDiv.removeAllListeners('plotly_click');
+    plotlyDiv.on('plotly_click', function (data) {
+        const graph = data.points[0];
+        let msg = '', selectedInputs;
+
+        switch (graph.data.type) {
+            // line graph
+            case 'scatter':
+                selectedInputs = [inputs[graph.x - 1]];
+                msg = 'Round: ' + graph.x + '\n';
+                break;
+            case 'histogram':
+                selectedInputs = graph.pointIndices.map(
+                    e => inputs[ e]);
+
+                msg += 'Bin: ' + Math.ceil(graph.x - binSizeHalf) + ' to ' + Math.floor(graph.x + binSizeHalf) + '\n';
+                break;
+            case 'bar':
+                selectedInputs = vals.reduce((res, e, i) => {
+                    if (e === null)
+                        res.push(inputs[i]);
+                    return res;
+                }, []);
+                console.assert(selectedInputs.length === graph.y);
+
+                msg = 'Unreachable\n';
+                break;
+            default:
+                return;
+        }
+
+        msg += 'Inputs:\n';
+
+        const sortedInputs = Array.from(new Set(selectedInputs)).sort();
+        sortedInputs.forEach(e => msg += '00040400' + e + '\n');
+
+        alert(msg);
+    });
+}
+
+// Set-up event listeners
+window.addEventListener('load', _ => {
+    document.getElementById('trapSwitch').addEventListener('change', toggleTraps);
+    document.querySelectorAll('.trap').forEach(elem => elem.addEventListener('click', evt => redrawGraph(evt)));
+});
+    </script>
+</body>
+</html>
