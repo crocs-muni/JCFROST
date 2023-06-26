@@ -1,0 +1,661 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Measurements - jcfrost.FrostSession#sign(byte[],short,short,byte[],short)</title>
+        <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Open+Sans">
+        <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.3/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.3/highlight.min.js"></script>
+    <script>hljs.highlightAll()</script>
+    <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+    <style>
+
+
+.contents {
+    display: flex;
+    justify-content: space-between;
+}
+
+.modebar-container {
+    z-index: 2;
+}
+
+.main-svg {
+    z-index: 1;
+}
+
+.trap {
+    position: relative;
+}
+
+.trap:hover {
+    cursor: pointer;
+    font-style: italic;
+}
+
+.trap_select {
+    background-color: rgba(0, 255, 255, 25%);
+    font-style: italic;
+}
+
+.trap_err {
+    background-color: rgba(255, 0, 0, 25%);
+}
+
+.trap_warn {
+    background-color: rgba(255, 255, 0, 50%);
+}
+
+.trapSwitch {
+    bottom: 0;
+    position: absolute;
+    right: 0;
+}
+
+.notes  {
+    align-items: center;
+    background-color: rgba(248, 248, 248, 0.97);
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em;
+}
+
+.note {
+    align-items: center;
+    display: flex;
+    justify-content: left;
+}
+
+.square {
+    display: inline-block;
+    height: 20px;
+    margin-right: 10px;
+    width: 20px;
+}
+
+.graph {
+    align-content: center;
+    width: 49%;
+}
+
+.graph-sticky {
+    top: 0;
+    position: -webkit-sticky;
+    position: sticky;
+}
+
+.code {
+    float: left;
+    width: 50%;
+}
+
+pre {
+    /* override the default pre margin in Firefox and Chrome */
+    margin-bottom: 0;
+}
+
+#codeWithTraps, #codeWithoutTraps {
+    flex: 1;
+    margin-left: -100px;
+    overflow-x: auto;
+}
+
+#codeWithTraps, #graphHelp {
+    display: none;
+}
+
+.codeHeader {
+    position: relative;
+    margin-bottom: 20px;
+    word-wrap: anywhere;
+}
+
+.codeContainer {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.codeWrapper {
+    display: inline-block;
+    min-width: 100%;
+}
+
+.center {
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <h1>jcfrost.FrostSession#sign(byte[],short,short,byte[],short)</h1>
+    <h3 id="graphName" class="center"></h3>
+    <div class="contents">
+        <div class="code">
+            <div class="codeHeader">
+                <div>
+                    <b>Mode:</b> time<br>
+                    <b>Card ATR:</b>                         <a href="https://smartcard-atr.apdu.fr/parse?ATR=3B9E958101414A434F5301454854015200560082" target="_blank">3B9E958101414A434F5301454854015200560082</a>
+<br>
+                        <b>Number of rounds:</b> 10<br>
+                    <b>APDU header:</b> 00040400<br>
+                        <b>Input regex:</b>
+66726f7374<br>
+                        <b>Input division:</b> none<br>
+                    <b>Elapsed time:</b> 0 days 00:03:29.114<br>
+                    <b>Source measurements:</b> <a href="measurements.csv" target="_blank">measurements.csv</a>
+                </div>
+                <div class="trapSwitch">
+                    <input type="checkbox" id="trapSwitch" autocomplete="off"/>
+                    <label for="trapSwitch">Show explicit traps</label>
+                </div>
+            </div>
+            <div class="codeContainer">
+<div id="heatmap"></div>                <div id="codeWithTraps">
+                    <div class="codeWrapper">
+                        <pre><code class="language-java">public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1);</span>
+</div>    computeBindingFactors(msg, msgOffset, msgLength);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2);</span>
+</div>    computeGroupCommitment();
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3);</span>
+</div>    computeLambda();
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4);</span>
+</div>    computeChallenge(msg, msgOffset, msgLength);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5);</span>
+</div>    computeSignatureShare(output, outputOffset);
+<div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6 trap">    <span class="trap_contents">PM.check(PMC.TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6);</span>
+</div>}
+</code></pre>
+                    </div>
+                </div>
+                <div id="codeWithoutTraps">
+                    <div class="codeWrapper">
+                                                                        <pre><code class="language-java"><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1 trap"><span class="trap_contents">public void sign(byte[] msg, short msgOffset, short msgLength, byte[] output, short outputOffset) {</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2 trap">    <span class="trap_contents">computeBindingFactors(msg, msgOffset, msgLength);</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3 trap">    <span class="trap_contents">computeGroupCommitment();</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4 trap">    <span class="trap_contents">computeLambda();</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5 trap">    <span class="trap_contents">computeChallenge(msg, msgOffset, msgLength);</span>
+</div><div class="TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6 trap">    <span class="trap_contents">computeSignatureShare(output, outputOffset);</span>
+</div>}
+</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="center">Colour explanation</h3>
+                <div class="notes">
+                    <div class="note">
+                        <div class="square trap_select"></div>
+                        Currently selected trap
+                    </div>
+                    <div class="note">
+                        <div class="square trap_warn"></div>
+                        Trap was never reached
+                    </div>
+                    <div class="note">
+                        <div class="square trap_err"></div>
+                        Trap was reached only sometimes
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="graph">
+            <div class="graph-sticky">
+                <div id="graphHelp" class="center">
+                    <p>Click on a graph item to get a list of corresponding inputs.</p>
+                </div>
+                <div id="plotly"></div>
+            </div>
+        </div>
+    </div>
+    <script type="application/javascript">
+
+
+const heatmapX = [
+    'Avg μs',
+];
+const heatmapData  = {
+    colorscale: 'RdBu'
+};
+
+
+/*
+ * MACROS
+ */
+
+
+/*
+ * CONSTANTS
+ */
+
+const trapPrefix = 'TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_';
+
+const inputs = ['66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374', '66726f7374'];
+const measurements = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [10129, 10818, 10251, 11087, 10949, 11233, 10708, 10103, 10991, 10481],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [754268, 750839, 759274, 761240, 756103, 753394, 758562, 754764, 742378, 758718],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [3102092, 3101902, 3064998, 3012207, 2996649, 3086068, 3155964, 3081664, 3119025, 3118921],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [254707, 273823, 241126, 242420, 225114, 272575, 225819, 242635, 260276, 242880],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [373595, 375236, 375606, 373547, 378156, 374687, 375885, 378742, 373518, 373633],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [581334, 596954, 547678, 616993, 580602, 562068, 546023, 578581, 546488, 528075]
+};
+
+const heatmapValues = {
+    x: heatmapX,
+    y: [...Array(13 + 1).keys()].splice(1).reverse(),
+    z: [[null], [568479.6], [null], [375260.5], [null], [248137.5], [null], [3083949.0], [null], [754954.0], [null], [10675.0], [null]]
+};
+
+const heatmapValuesFiltered = {
+    x: heatmapValues.x,
+    y: undefined,
+    z: heatmapValues.z.filter((e, i, z) => i === 0 || z[i][0] !== null || z[i - 1][0] === null)
+};
+heatmapValuesFiltered.y = heatmapValues.y.slice(13 - heatmapValuesFiltered.z.length, 13);
+
+const histogramCommon = {
+    bingroup: '1',
+    type: 'histogram',
+    xaxis: 'x2',
+    yaxis: 'y1',
+    showlegend: true,
+    hovertemplate: 'Trace: %{meta[0]}<br>Bin: %{x}<br>Count: %{y}<extra></extra>'
+};
+
+const configCommon = {
+    displaylogo: false,
+    responsive: true,
+    toImageButtonOptions: {
+        format: 'svg',
+        scale: 2
+    }
+};
+
+/*
+ * FUNCTIONS
+ */
+
+// this is not very nice but Google didn't help much, nor I'm a JS developer ¯\_(ツ)_/¯
+let heatmapHeight;
+window.addEventListener('load', _ => {
+    heatmapHeight = document.querySelector('#codeWithoutTraps code').clientHeight + 6;
+    const maxLineStringSize = 2 * heatmapValues.y[0].toString().length;
+
+    // Heatmap
+    Plotly.newPlot('heatmap', [{
+        ...heatmapValuesFiltered,
+        hovertemplate: 'Line: %{y}<br>%{z} μs<extra></extra>',
+        showlegend: false,
+        showscale: false,
+        type: 'heatmap',
+        xgap: 4,
+        ...heatmapData
+    }], {
+        paper_bgcolor: 'rgba(0, 0, 0, 0)',
+        margin: {
+            l: 18 + maxLineStringSize,
+            r: 110,
+            b: 0,
+            t: 18,
+            pad: 4
+        },
+        height: heatmapHeight,
+        width: 112 + 45 * heatmapValues.x.length + maxLineStringSize,
+        xaxis: {
+            side: 'top',
+            fixedrange: true,
+            ticks: '',
+            showgrid: false,
+            zeroline: false
+        },
+        yaxis: {
+            fixedrange: true,
+            ticks: '',
+            title: '',
+            type: 'category',
+            showgrid: false,
+            zeroline: false
+        }
+    }, {
+        displayModeBar: false
+    });
+
+    // Heatmap click event handler
+    const heatmapDiv = document.getElementById('heatmap');
+    heatmapDiv.on('plotly_click', function (data) {
+        const graph = data.points[0];
+        // check for a valid value
+        if (graph.z === null)
+            return;
+
+        // compute the correct trap index
+        const z = graph.data.z;
+
+        let trapIdx = 0;
+        for (let i = z.length - 1; i >= z.length - graph.y; i--) {
+            if (z[i][0] !== null)
+                trapIdx++;
+        }
+
+        // select the given trap
+        const trapDiv = document.querySelector('.' + trapPrefix + trapIdx);
+        const event = new MouseEvent('click');
+        trapDiv.dispatchEvent(event);
+    });
+});
+
+/**
+ * Shows or hides explicit performance traps.
+ *
+ * @param {Event} event change event
+ */
+function toggleTraps(event) {
+    const divWith = document.getElementById('codeWithTraps');
+    const divWithout = document.getElementById('codeWithoutTraps');
+
+    if (event.currentTarget.checked) {
+        divWith.style.display = 'initial';
+        divWithout.style.display = 'none';
+
+        const codeWith = divWith.querySelector('code');
+        Plotly.update('heatmap', {
+            x: [heatmapValues.x],
+            y: [heatmapValues.y],
+            z: [heatmapValues.z]
+        }, {
+            'yaxis.type': 'category',
+            height: codeWith.clientHeight + 6
+        });
+        return;
+    }
+
+    divWith.style.display = 'none';
+    divWithout.style.display = 'initial';
+
+    Plotly.update('heatmap', {
+        x: [heatmapValuesFiltered.x],
+        y: [heatmapValuesFiltered.y],
+        z: [heatmapValuesFiltered.z]
+    }, {
+        'yaxis.type': 'category',
+        height: heatmapHeight
+    });
+}
+
+/**
+ * Highlights and selects the given trap.
+ *
+ * @param {String} trapName
+ */
+function selectTraps(trapName) {
+    // update highlight of the selected trap
+    document.querySelectorAll('.trap .trap_select').forEach(t => t.classList.remove('trap_select'));
+    document.querySelectorAll('.' + trapName + ' .trap_contents').forEach(t => t.classList.add('trap_select'));
+}
+
+/*
+ * CONSTANTS
+ */
+
+const filteredMeasurements = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [10129, 10818, 10251, 11087, 10949, 11233, 10708, 10103, 10991, 10481],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [754268, 750839, 759274, 761240, 756103, 753394, 758562, 754764, 742378, 758718],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [3102092, 3101902, 3064998, 3012207, 2996649, 3086068, 3155964, 3081664, 3119025, 3118921],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [254707, 273823, 241126, 242420, 225114, 272575, 225819, 242635, 260276, 242880],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [373595, 375236, 375606, 373547, 378156, 374687, 375885, 378742, 373518, 373633],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [581334, 596954, 547678, 616993, 580602, 562068, 546023, 578581, 546488, 528075]
+};
+
+const movingAverages = {
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_1: [10129.0, 10473.5, 10399.333333333334, 10571.25, 10646.8, 10744.5, 10739.285714285714, 10659.75, 10696.555555555555, 10675.0],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_2: [754268.0, 752553.5, 754793.6666666666, 756405.25, 756344.8, 755853.0, 756240.0, 756055.5, 754535.7777777778, 754954.0],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_3: [3102092.0, 3101997.0, 3089664.0, 3070299.75, 3055569.6, 3060652.6666666665, 3074268.5714285714, 3075193.0, 3080063.222222222, 3083949.0],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_4: [254707.0, 264265.0, 256552.0, 253019.0, 247438.0, 251627.5, 247940.57142857142, 247277.375, 248721.66666666666, 248137.5],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_5: [373595.0, 374415.5, 374812.3333333333, 374496.0, 375228.0, 375137.8333333333, 375244.5714285714, 375681.75, 375441.3333333333, 375260.5],
+    TRAP_jcfrost_FrostSession_hash_sign_argb_byte_arr__short__short__byte_arr__short_arge_6: [581334.0, 589144.0, 575322.0, 585739.75, 584712.2, 580938.1666666666, 575950.2857142857, 576279.125, 572969.0, 568479.6]
+};
+
+const scatterCommon = {
+    type: 'scatter',
+    xaxis: 'x3',
+    yaxis: 'y2',
+    name: 'elapsed time',
+    showlegend: true,
+    marker: {
+        color: 'rgb(225, 148, 22)'
+    },
+    hovertemplate: 'Trace: elapsed time<br>Round: %{x}<br>Time: %{y} μs<extra></extra>'
+};
+
+const layoutCommon = {
+    bargap: 0.2,
+    barmode: 'overlay',
+    height: 700,
+    margin: {
+        l: 60,
+        r: 40,
+        b: 40,
+        t: 40,
+        pad: 5
+    },
+    xaxis1: {
+        anchor: 'y1',
+        title: 'Unreachable'
+    },
+    xaxis2: {
+        anchor: 'y1',
+        // dtick: 1,
+        tickformat: ',d',
+        title: 'Time in μs'
+    },
+    xaxis3: {
+        anchor: 'y2',
+        domain: [0, 1],
+        tickformat: ',d',
+        title: 'Round'
+    },
+    yaxis1: {
+        anchor: 'x1',
+        domain: [0.55, 1],
+        title: 'Frequency'
+        // type: 'log',
+    },
+    yaxis2: {
+        anchor: 'x3',
+        domain: [0, 0.43],
+        title: 'Time in μs'
+    }
+};
+
+/*
+ * FUNCTIONS
+ */
+
+// set default heading
+document.getElementById('graphName').innerText = 'Select a line to view its histogram.';
+
+/**
+ * Redraw graph event handler
+ *
+ * @param {Event} evt mouse click event
+ */
+function redrawGraph(evt) {
+    // enable graph help
+    document.getElementById('graphHelp').style.display = 'initial';
+
+    // attribute with trap name is always the first
+    const trapName = evt.currentTarget.classList[0];
+
+    // update highlight of the selected trap
+    selectTraps(trapName);
+
+    // update trap title
+    document.getElementById('graphName').textContent = trapName;
+
+    const filteredVals = filteredMeasurements[trapName];
+    const movingAverage = movingAverages[trapName];
+    const vals = measurements[trapName];
+
+    const traces = [];
+
+    const hasTime = vals.some(e => e !== null);
+    if (hasTime) {
+        // Histograms
+        traces.push({
+            ...histogramCommon,
+            x: filteredVals,
+            name: 'measurements',
+            meta: ['measurements'],
+            marker: {
+                color: 'rgb(49, 130, 189)',
+                opacity: 0.75
+            }
+        });
+
+        traces.push({
+            ...histogramCommon,
+            x: vals.map((e, i) => filteredVals[i] !== null ? null : e),
+            name: 'outliers',
+            meta: ['outliers'],
+            visible: 'legendonly',
+            marker: {
+                color: 'rgb(255, 136, 0)',
+                opacity: 0.75
+            }
+        });
+
+        // Line graph
+
+        // make dots only on line endings
+        const dot_x = [], dot_y = [];
+        for (let i = 0; i < vals.length; i++) {
+            // no value
+            if (vals[i] === null)
+                continue;
+
+            // both neighbouring values are defined or only one is defined on border values
+            if (vals.length > 1 &&
+                (i === 0 || vals[i - 1] !== null) && (i === vals.length - 1 || vals[i + 1] != null))
+                continue;
+
+            dot_x.push(i + 1);
+            dot_y.push(vals[i]);
+        }
+
+        traces.push({
+            ...scatterCommon,
+            x: dot_x,
+            y: dot_y,
+            mode: 'markers',
+            showlegend: false
+        }, {
+            ...scatterCommon,
+            x: [...Array(vals.length + 1).keys()].splice(1),
+            y: vals,
+            mode: 'lines'
+        }, {
+            ...scatterCommon,
+            x: [...Array(vals.length + 1).keys()].splice(1),
+            y: movingAverage,
+            name: 'moving average',
+            marker: {
+                color: 'rgb(166, 56, 64)'
+            },
+            hovertemplate: 'Trace: moving average<br>Round: %{x}<br>Average time: %{y} μs<extra></extra>'
+        });
+    }
+
+    // bar graph visualising number of unreachable rounds
+    const hasUnreach = vals.includes(null);
+    if (hasUnreach) {
+        const y = vals.filter(e => e === null).length;
+        traces.push({
+            x: [''],
+            y: [y],
+            type: 'bar',
+            xaxis: 'x1',
+            yaxis: 'y1',
+            name: 'unreachable',
+            showlegend: false,
+            marker: {
+                color: 'rgb(255, 0, 0)',
+                opacity: 0.65
+            },
+            hovertemplate: 'Unreachable<br>Count: %{y} (%{y}/' + vals.length + ')<extra></extra>'
+        });
+    }
+
+    // WARNING: Layout and config must be passed directly!  Otherwise, sometimes the graph may fail to load.
+    Plotly.react('plotly', traces, {
+        ...layoutCommon,
+        xaxis1: {
+            ...layoutCommon.xaxis1,
+            domain: [0, hasTime ? 0.45 : 1]
+        },
+        xaxis2: {
+            ...layoutCommon.xaxis2,
+            domain: [hasUnreach ? 0.55 : 0, 1]
+        }
+    }, {...configCommon});
+
+    // set click event handler
+    const plotlyDiv = document.getElementById('plotly');
+
+    // get bin half of the bin size
+    // Unfortunately, the xbins.size key is stored only in the first histogram trace and not in the rest, so we have
+    // to obtain this value in advance.
+    const binSizeHalf = plotlyDiv._fullData[0].xbins.size / 2;
+
+    // replace the event handler
+    plotlyDiv.removeAllListeners('plotly_click');
+    plotlyDiv.on('plotly_click', function (data) {
+        const graph = data.points[0];
+        let msg = '', selectedInputs;
+
+        switch (graph.data.type) {
+            // line graph
+            case 'scatter':
+                selectedInputs = [inputs[graph.x - 1]];
+                msg = 'Round: ' + graph.x + '\n';
+                break;
+            case 'histogram':
+                selectedInputs = graph.pointIndices.map(
+                    e => inputs[ e]);
+
+                msg += 'Bin: ' + Math.ceil(graph.x - binSizeHalf) + ' to ' + Math.floor(graph.x + binSizeHalf) + '\n';
+                break;
+            case 'bar':
+                selectedInputs = vals.reduce((res, e, i) => {
+                    if (e === null)
+                        res.push(inputs[i]);
+                    return res;
+                }, []);
+                console.assert(selectedInputs.length === graph.y);
+
+                msg = 'Unreachable\n';
+                break;
+            default:
+                return;
+        }
+
+        msg += 'Inputs:\n';
+
+        const sortedInputs = Array.from(new Set(selectedInputs)).sort();
+        sortedInputs.forEach(e => msg += '00040400' + e + '\n');
+
+        alert(msg);
+    });
+}
+
+// Set-up event listeners
+window.addEventListener('load', _ => {
+    document.getElementById('trapSwitch').addEventListener('change', toggleTraps);
+    document.querySelectorAll('.trap').forEach(elem => elem.addEventListener('click', evt => redrawGraph(evt)));
+});
+    </script>
+</body>
+</html>
