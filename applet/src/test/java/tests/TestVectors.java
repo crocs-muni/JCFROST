@@ -22,17 +22,29 @@ public class TestVectors {
         return data.getJSONObject("config").getInt("MAX_PARTICIPANTS");
     }
 
+    public int numParticipants() {
+        return data.getJSONObject("config").getInt("NUM_PARTICIPANTS");
+    }
+
+
     public int[] participants() {
-        String[] ids = data.getJSONObject("round_one_outputs").getString("participant_list").split(",");
-        int[] result = new int[ids.length];
-        for(int i = 0; i < ids.length; ++i) {
-            result[i] = Integer.parseInt(ids[i]);
+        int[] result = new int[numParticipants()];
+        int i = 0;
+        for (Object participant_idx : data.getJSONObject("inputs").getJSONArray("participant_list")) {
+            result[i] = (int) participant_idx;
+            ++i;
         }
         return result;
     }
 
     public byte[] secret(int identifier) {
-        return Hex.decode(data.getJSONObject("inputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("participant_share"));
+        for (Object participant_share : data.getJSONObject("inputs").getJSONArray("participant_shares")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("participant_share"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     public byte[] groupKey() {
@@ -40,19 +52,43 @@ public class TestVectors {
     }
 
     public byte[] hidingCommitment(int identifier) {
-        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("hiding_nonce_commitment"));
+        for (Object participant_share : data.getJSONObject("round_one_outputs").getJSONArray("outputs")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("hiding_nonce_commitment"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     public byte[] bindingCommitment(int identifier) {
-        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("binding_nonce_commitment"));
+        for (Object participant_share : data.getJSONObject("round_one_outputs").getJSONArray("outputs")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("binding_nonce_commitment"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     public byte[] hidingRandomness(int identifier) {
-        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("hiding_nonce_randomness"));
+        for (Object participant_share : data.getJSONObject("round_one_outputs").getJSONArray("outputs")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("hiding_nonce_randomness"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     public byte[] bindingRandomness(int identifier) {
-        return Hex.decode(data.getJSONObject("round_one_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("binding_nonce_randomness"));
+        for (Object participant_share : data.getJSONObject("round_one_outputs").getJSONArray("outputs")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("binding_nonce_randomness"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 
     public byte[] message() {
@@ -60,6 +96,12 @@ public class TestVectors {
     }
 
     public byte[] signature(int identifier) {
-        return Hex.decode(data.getJSONObject("round_two_outputs").getJSONObject("participants").getJSONObject(String.valueOf(identifier)).getString("sig_share"));
+        for (Object participant_share : data.getJSONObject("round_two_outputs").getJSONArray("outputs")) {
+            JSONObject share = (JSONObject) participant_share;
+            if (share.getInt("identifier") == identifier) {
+                return Hex.decode(share.getString("sig_share"));
+            }
+        }
+        throw new IndexOutOfBoundsException();
     }
 }

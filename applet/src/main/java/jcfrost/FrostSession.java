@@ -34,7 +34,7 @@ public class FrostSession {
     private ECPoint groupCommitment = new ECPoint(JCFROST.curve);
     private ECPoint tmpPoint = new ECPoint(JCFROST.curve);
     private ECPoint tmpPoint2 = new ECPoint(JCFROST.curve);
-    private byte[] rhoBuffer = JCSystem.makeTransientByteArray((short) (3 * 32), JCSystem.CLEAR_ON_RESET);
+    private byte[] rhoBuffer = JCSystem.makeTransientByteArray((short) (33 + 3 * 32), JCSystem.CLEAR_ON_RESET);
     private BigNat[] bindingFactors = new BigNat[Consts.MAX_PARTIES];
 
     public FrostSession() {
@@ -207,7 +207,10 @@ public class FrostSession {
     }
 
     private void computeBindingFactors(byte[] msg, short msgOffset, short msgLen) {
-        JCFROST.hasher.h4(msg, msgOffset, msgLen, rhoBuffer, (short) 0);
+        groupPublic.encode(rhoBuffer, (short) 0, true);
+
+        JCFROST.hasher.h4(msg, msgOffset, msgLen, rhoBuffer, (short) 33);
+
         JCFROST.hasher.update(Consts.CONTEXT_STRING, (short) 0, (short) Consts.CONTEXT_STRING.length);
         JCFROST.hasher.update(Consts.H5_TAG, (short) 0, (short) Consts.H5_TAG.length);
         for(short j = 0; j < storedCommitments; ++j) {
@@ -226,11 +229,11 @@ public class FrostSession {
                 JCFROST.hasher.update(commitments[j].binding, (short) 0, (short) 33);
             }
         }
-        JCFROST.hasher.doFinal(ramArray, (short) 0, (short) 0, rhoBuffer, (short) 32);
+        JCFROST.hasher.doFinal(ramArray, (short) 0, (short) 0, rhoBuffer, (short) 65);
 
-        Util.arrayFillNonAtomic(rhoBuffer, (short) 64, (short) 31, (byte) 0);
+        Util.arrayFillNonAtomic(rhoBuffer, (short) 97, (short) 31, (byte) 0);
         for(short j = 0; j < storedCommitments; ++j) {
-            rhoBuffer[95] = commitments[j].identifier;
+            rhoBuffer[128] = commitments[j].identifier;
             JCFROST.hasher.h1(rhoBuffer, (short) 0, (short) rhoBuffer.length, bindingFactors[j]);
         }
     }

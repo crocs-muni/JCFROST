@@ -1,0 +1,160 @@
+{
+  "config": {
+    "MAX_PARTICIPANTS": "11",
+    "NUM_PARTICIPANTS": "5",
+    "MIN_PARTICIPANTS": "5",
+    "name": "FROST(secp256k1, SHA-256)",
+    "group": "secp256k1",
+    "hash": "SHA-256"
+  },
+  "inputs": {
+    "participant_list": [
+      6,
+      7,
+      8,
+      10,
+      11
+    ],
+    "group_secret_key": "bb08d9b0b3a534d9ae4f46f9cbbc4a086fd91fe357168fa67225c0b9bc2b47d5",
+    "group_public_key": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1",
+    "message": "74657374",
+    "share_polynomial_coefficients": [
+      "d0605f5f6c254b2965a5da347889fc9c1fe3fd315474af32b764d1c5a2f25e50",
+      "5f35dc9240e6921c3be8c077a199d2749f861624e9270e7df498d9deaf797c0a",
+      "804d8b85a824b5f58092011a15c992453fbc2d095811b85f50f7c8c9e7c20b12",
+      "b575191da724def8ad8ba601afc3e13345e33eb91339d4bceb371f965e21444c"
+    ],
+    "participant_shares": [
+      {
+        "identifier": 1,
+        "participant_share": "2061ba45affaa70d7dfb88c1ab6d8c9584d60847f223f9c01adb3917e3d7adca"
+      },
+      {
+        "identifier": 2,
+        "participant_share": "325ef8c042fdb2d44688662cedc23289aed461969663525db1e607016c13ba1a"
+      },
+      {
+        "identifier": 3,
+        "participant_share": "7749626ddeb9f6e773053e14ccff54df1a6305ec2d26af8776009a6369f3e584"
+      },
+      {
+        "identifier": 4,
+        "participant_share": "78641f63a0aff950b398ff7afdc729741bc2056dc9597503f61811e9f210ba96"
+      },
+      {
+        "identifier": 5,
+        "participant_share": "c1ecb27e51d52769fd822989af190309e991832f56c8f493d11e998ce8bd16ee"
+      },
+      {
+        "identifier": 6,
+        "participant_share": "e31af9626693d5dd8b16cb938a5151472773fb663b932d7a3666ad766199a8b8"
+      },
+      {
+        "identifier": 7,
+        "participant_share": "6e212c7bfecb40a5dbc48513b329a0b6a0bd2050076f6cb8a575788f6fcb2fef"
+      },
+      {
+        "identifier": 8,
+        "participant_share": "f82bdefee5cf8b0db41085adc7b89ac4bdcf93ffd23f8d866da79199c66700df"
+      },
+      {
+        "identifier": 9,
+        "participant_share": "1961fee69269bfb01d978d2de07205c72403baf6205c37ea2f42c3e2d72d7c9f"
+      },
+      {
+        "identifier": 10,
+        "participant_share": "6ce4d4f626d7d078670deb889026c4f145cd803d0c2282d399db623724725c5a"
+      },
+      {
+        "identifier": 11,
+        "participant_share": "90d004b870cc96a2243f80dae404d85fd296914c1c665201adeef3eeef346606"
+      }
+    ]
+  },
+  "round_one_outputs": {
+    "outputs": [
+      {
+        "identifier": 6,
+        "hiding_nonce_randomness": "54d0d3107bb7e94c67cd14955fb5fcb41d6374499ceae219b99a543d9316c385",
+        "binding_nonce_randomness": "d21c4768c10f3c84f4285fa38c3081cae12d8e61aba1472371674d6073993cd0",
+        "hiding_nonce": "d839a120e127aeae29ceb4a270f0e26d64b8cd16ee02ae17eabd76647eab526b",
+        "binding_nonce": "36531f511278cc4f1edadaaef5f646a63709cb377d8c83944f286a2d8f2b66dc",
+        "hiding_nonce_commitment": "03c78b4b5debec8d96caea436cf7eba6eac1981852871a9787d904d67345730d6b",
+        "binding_nonce_commitment": "029598df4ddd2ff22920721c2644fc5d7a189d43c2a97d8fc1ff51b419164d3fc6",
+        "binding_factor_input": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1ff9b5210ffbb3c07a73a7c8935be4a8c62cf015f6cf7ade6efac09a6513540fc670acda2a02d6e443848e9bd317e332022b180a4d6476e1e792ea0c66d00e4ca0000000000000000000000000000000000000000000000000000000000000006",
+        "binding_factor": "86e2df52e470b3a0f846cd7d74cf1a3ada7d42dcf6341305e178246188e50022"
+      },
+      {
+        "identifier": 7,
+        "hiding_nonce_randomness": "27782ece78925f7eca1dfa86ea45f900766ee63a77913c5856348f229ddaa035",
+        "binding_nonce_randomness": "3d67a2c1ef5fc5499c95cce026ea891e97ed31322fd5ff40b00ee0a81486ea6c",
+        "hiding_nonce": "f5a6c59acb96726c950de59be62dd1c27a8a1bea22a7b93cacc25a927c71f81f",
+        "binding_nonce": "35a43a9e7170d994e3192bd3670ac4a0e0922c5b766031f40af2b99f06cfcdda",
+        "hiding_nonce_commitment": "0221082a5d08e7449b6f57f1ec7ace4da0a29db75223e7989b7b1433a6c2c16a24",
+        "binding_nonce_commitment": "03343628838a57da13d675b1aa2cbb613ba716f40f9a65c670c975550b6f1d502a",
+        "binding_factor_input": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1ff9b5210ffbb3c07a73a7c8935be4a8c62cf015f6cf7ade6efac09a6513540fc670acda2a02d6e443848e9bd317e332022b180a4d6476e1e792ea0c66d00e4ca0000000000000000000000000000000000000000000000000000000000000007",
+        "binding_factor": "0dc862d74d96ebbd985e66e2b9305323f5676a3bab926a526ba0739c8ab3551e"
+      },
+      {
+        "identifier": 8,
+        "hiding_nonce_randomness": "a322ce4f30293c26455d3edc3666556a5b171944598af57a06110955eeb2c527",
+        "binding_nonce_randomness": "7af1f8a57160564b8f7067cf29a57ffd4a2b3b4e8e4c8bcc539783f0703aaf81",
+        "hiding_nonce": "7b0573bba794e8c3c3c0e33a212633896dfcd3b49d67eb49ee08054b5e5f80a1",
+        "binding_nonce": "a88711e6bb378e35964e20cda93a37711ef8cd4be8bf494359268e5d8cd99966",
+        "hiding_nonce_commitment": "024dea33a7e662b8a104a5c6c11c01f788a57072acb0a5b26cad29a06f83f7d823",
+        "binding_nonce_commitment": "02aa59cc45a583ee015a904b65c5e8b8d435950d85541e0d885ec378023eed6e78",
+        "binding_factor_input": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1ff9b5210ffbb3c07a73a7c8935be4a8c62cf015f6cf7ade6efac09a6513540fc670acda2a02d6e443848e9bd317e332022b180a4d6476e1e792ea0c66d00e4ca0000000000000000000000000000000000000000000000000000000000000008",
+        "binding_factor": "da01d568a05c5a1753b561541097b7a24682986f043d3fb3692d5b28296c07a3"
+      },
+      {
+        "identifier": 10,
+        "hiding_nonce_randomness": "0b12b6a095bc1ba04d87adbb21ce506ce231614bcaac6f3308767548c5efa6c6",
+        "binding_nonce_randomness": "ddff1eb2a38b56fa1e2c03c029d424851f8f973a81392452686e91f03fdc2da8",
+        "hiding_nonce": "d72376435b58157a2a3dabd06fcab4df2d240e22289623eaa1217f3a903595da",
+        "binding_nonce": "589c9f1463062d57229317ed3fbc51ac78f1d53314af0a00a378a331d11b43f5",
+        "hiding_nonce_commitment": "0355fc09ffaed6cae391a37632d544e553db69d1bbc6301ef6cb68b946e1be5985",
+        "binding_nonce_commitment": "027cecbcdcbc3e054467b8e3b9d668c23aed9cb4054db75ca585481344cc6a17ba",
+        "binding_factor_input": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1ff9b5210ffbb3c07a73a7c8935be4a8c62cf015f6cf7ade6efac09a6513540fc670acda2a02d6e443848e9bd317e332022b180a4d6476e1e792ea0c66d00e4ca000000000000000000000000000000000000000000000000000000000000000a",
+        "binding_factor": "0908213befb6569d3c9e86074cbb3ed32395170cbd365354d115f31c9907e9e2"
+      },
+      {
+        "identifier": 11,
+        "hiding_nonce_randomness": "30455c3fca275c8339dc53ecb3ff4ee0ff78263c69ac939da457eb121f758945",
+        "binding_nonce_randomness": "9f1b70588f7c3c0e6d970273d64b890f832c40052286fafa05dcdf4a3d3fd7c1",
+        "hiding_nonce": "efb69cae2ea3e8c154be7f292c8858cd9853264200186f72e1e3223543d284e0",
+        "binding_nonce": "91209e150b3286362653c6ca7adb8fa696f851a2401cb4a355f47135c3a8c972",
+        "hiding_nonce_commitment": "0394662aeeac112bfa6a7a56416dc5a8f8aa0c6b625b1b8e35dadcfbb3aecd41c9",
+        "binding_nonce_commitment": "03c4beccf3d589a98c5c3d57e2290abdeed16004ff92f99af2e9de959016f52532",
+        "binding_factor_input": "029b53098cf239fef86a6d33b6785bd6a4bf9abb902f37d40631ca002ade1d53d1ff9b5210ffbb3c07a73a7c8935be4a8c62cf015f6cf7ade6efac09a6513540fc670acda2a02d6e443848e9bd317e332022b180a4d6476e1e792ea0c66d00e4ca000000000000000000000000000000000000000000000000000000000000000b",
+        "binding_factor": "39a50e541a57c194ce3f88950f4e9408132c5556283f7bd5052050f29d8b64bf"
+      }
+    ]
+  },
+  "round_two_outputs": {
+    "outputs": [
+      {
+        "identifier": 6,
+        "sig_share": "63674238341802f95d096f9415d8346cb0eee137b4f1a19d34d477ed377ff776"
+      },
+      {
+        "identifier": 7,
+        "sig_share": "b8849fda05283ceb795960fba108ba5153b2a33636d459ea715d05c94efd9274"
+      },
+      {
+        "identifier": 8,
+        "sig_share": "4ce868747f5effdce3b651eccd6c67df0dfc83eb91ba741e1705a69533508014"
+      },
+      {
+        "identifier": 10,
+        "sig_share": "4ca8eed2cfbad62a93d6dcb93b95168e57412d791c749d8c0fd97dcbdf11609f"
+      },
+      {
+        "identifier": 11,
+        "sig_share": "41d0bf7712ad74f81c342f008f4e7d30e038b5d4ecfb4a490136c33f7e4f6a5e"
+      }
+    ]
+  },
+  "final_output": {
+    "sig": "024433a2663a99660c3f1ba28bf135343e9215c8e2ba3570dc2277b8fd35066006f74df8d09b078ae46a242e364f30ea5d8f690ec0d7a7b73f0e7506ca46f893ba"
+  }
+}
