@@ -15,8 +15,8 @@ public class FrostSession {
     private short storedCommitments = 0;
     private short index = -1;
 
-    private BigNat hidingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.rm);
-    private BigNat bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_TRANSIENT_DESELECT, JCFROST.rm);
+    private BigNat hidingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, JCFROST.rm);
+    private BigNat bindingNonce = new BigNat((short) 32, JCSystem.MEMORY_TYPE_PERSISTENT, JCFROST.rm);
     private ECPoint hidingPoint = new ECPoint(JCFROST.curve);
     private ECPoint bindingPoint = new ECPoint(JCFROST.curve);
 
