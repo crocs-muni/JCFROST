@@ -46,5 +46,6 @@ The applet responds to the following APDUs.
 | `COMMITMENT` | 0x00  | 0x03  | `idx`        | 0x00       | hiding commitment + binding commitment of party `idx`          |
 | `SIGN`       | 0x00  | 0x04  | msg length   | 0x00       | message                                                        |
 | `RESET`      | 0x00  | 0x05  | 0x00         | 0x00       | ---                                                            |
+| `GROUP_KEY`  | 0x00  | 0x06  | 0x00         | 0x00       | ---                                                            |
 
 The applet expects that commitments supplied by the `COMMITMENT` instruction are ordered by party `idx`, including the card's commitments.

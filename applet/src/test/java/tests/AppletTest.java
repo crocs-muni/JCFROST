@@ -65,6 +65,11 @@ public class AppletTest extends BaseTest {
         return cm.transmit(cmd);
     }
 
+    public ResponseAPDU groupKey(CardManager cm) throws CardException {
+        final CommandAPDU cmd = new CommandAPDU(Consts.CLA_JCFROST, Consts.INS_GROUP_KEY, 0, 0);
+        return cm.transmit(cmd);
+    }
+
     @Test
     public void testSetup() throws Exception {
         CardManager cm = connect();
@@ -79,6 +84,7 @@ public class AppletTest extends BaseTest {
             );
             Assert.assertArrayEquals(responseAPDU.getData(), expected);
         }
+        Assert.assertArrayEquals(tv.groupKey(), groupKey(cm).getData());
         reset(cm);
     }
 

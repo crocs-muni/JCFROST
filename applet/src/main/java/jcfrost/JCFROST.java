@@ -67,6 +67,10 @@ public class JCFROST extends Applet {
                     reset(apdu);
                     break;
 
+                case Consts.INS_GROUP_KEY:
+                    getGroupKey(apdu);
+                    break;
+
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }
@@ -166,5 +170,10 @@ public class JCFROST extends Applet {
     private void reset(APDU apdu) {
         frost.reset();
         apdu.setOutgoing();
+    }
+
+    private void getGroupKey(APDU apdu) {
+        short len = groupPublic.encode(apdu.getBuffer(), (short) 0, true);
+        apdu.setOutgoingAndSend((short) 0, len);
     }
 }
