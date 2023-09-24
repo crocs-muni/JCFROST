@@ -40,10 +40,10 @@ The applet responds to the following APDUs.
 
 | Name         | CLA   | INS   | P1           | P2         | Data                                                           |
 | :---         | :---: | :---: | :---:        | :---:      | :---                                                           |
-| `SETUP`      | 0x00  | 0x00  | 0x00         | 0x00       | ---                                                            |
-| `INITIALIZE` | 0x00  | 0x01  | t            | n          | card index || secret key share || group public key             |
+| `INITIALIZE` | 0x00  | 0x00  | 0x00         | 0x00       | ---                                                            |
+| `SETUP`      | 0x00  | 0x01  | t            | n          | card index + secret key share + group public key               |
 | `COMMIT`     | 0x00  | 0x02  | data length  | 0x00       | --- or randomness used to fix nonce generation (in debug mode) |
-| `COMMITMENT` | 0x00  | 0x03  | `idx`        | 0x00       | hiding commitment || binding commitment of party `idx`         |
+| `COMMITMENT` | 0x00  | 0x03  | `idx`        | 0x00       | hiding commitment + binding commitment of party `idx`          |
 | `SIGN`       | 0x00  | 0x04  | msg length   | 0x00       | message                                                        |
 | `RESET`      | 0x00  | 0x05  | 0x00         | 0x00       | ---                                                            |
 
